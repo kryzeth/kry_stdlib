@@ -39,10 +39,25 @@ jobs:
             cat /tmp/busted-install.log
             exit 1
           }
-          sudo luarocks --lua-version=5.2 install faketorio >/tmp/faketorio-install.log 2>&1 || {
-            cat /tmp/faketorio-install.log
+          sudo luarocks --lua-version=5.2 install serpent >/tmp/serpent-install.log 2>&1 || {
+            cat /tmp/serpent-install.log
             exit 1
           }
+
+      - name: Restore stdlib Factorio mock harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          git remote add stdlib-upstream https://github.com/Afforess/Factorio-Stdlib.git
+          git fetch --no-tags --depth=2 stdlib-upstream \
+            52967ec14de085c13eac0abc08a78db915057ff7
+          git checkout FETCH_HEAD^ -- faketorio
+
+          grep -rl --fixed-strings '__stdlib__' faketorio \
+            | xargs -r sed -i 's/__stdlib__/__stdlib2-continued__/g'
+
+          sudo ln -sfn "${GITHUB_WORKSPACE}" \
+            /usr/local/share/lua/5.2/__stdlib2-continued__
 
       - name: Run Busted test suite
         id: busted
