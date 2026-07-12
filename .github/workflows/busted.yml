@@ -49,9 +49,26 @@ jobs:
         run: |
           set -euo pipefail
           git remote add stdlib-upstream https://github.com/Afforess/Factorio-Stdlib.git
-          git fetch --no-tags --depth=1 stdlib-upstream \
-            93a5e69e9813e8b853cb38e4479b2366a0cba3d3
-          git checkout FETCH_HEAD -- faketorio
+          git fetch --no-tags stdlib-upstream master
+
+          harness_commit=""
+          while read -r commit; do
+            if git cat-file -e "${commit}:faketorio/searchers.lua" 2>/dev/null \
+              && git cat-file -e "${commit}:faketorio/globals.lua" 2>/dev/null; then
+              harness_commit="${commit}"
+              break
+            fi
+          done < <(git rev-list stdlib-upstream/master -- faketorio/searchers.lua)
+
+          if [[ -z "${harness_commit}" ]]; then
+            echo "Could not locate a complete historical stdlib Faketorio harness."
+            exit 1
+          fi
+
+          echo "Restoring Faketorio harness from ${harness_commit}"
+          git checkout "${harness_commit}" -- faketorio
+          test -f faketorio/searchers.lua
+          test -f faketorio/globals.lua
 
           grep -rl --fixed-strings '__stdlib__' faketorio \
             | xargs -r sed -i 's/__stdlib__/__stdlib2-continued__/g'
