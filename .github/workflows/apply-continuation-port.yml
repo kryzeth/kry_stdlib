@@ -18,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TARGET_BRANCH: ${{ github.head_ref }}
-      GH_TOKEN: ${{ github.token }}
 
     steps:
       - name: Check out the migration branch
@@ -67,7 +66,7 @@ jobs:
       - name: Apply rename and compatibility changes
         run: python scripts/apply_continuation_port.py
 
-      - name: Publish generated source as one commit
+      - name: Commit and push generated source
         shell: bash
         run: |
           set -euo pipefail
@@ -77,91 +76,8 @@ jobs:
             exit 0
           fi
 
-          python - <<'PY'
-          from __future__ import annotations
-
-          import base64
-          import json
-          import os
-          import subprocess
-          import urllib.parse
-          import urllib.request
-          from pathlib import Path
-
-          repository = os.environ['GITHUB_REPOSITORY']
-          branch = os.environ['TARGET_BRANCH']
-          token = os.environ['GH_TOKEN']
-          parent_sha = subprocess.check_output(
-              ['git', 'rev-parse', 'HEAD'], text=True
-          ).strip()
-
-          def api(method: str, path: str, payload: dict | None = None) -> dict:
-              url = f'https://api.github.com/repos/{repository}{path}'
-              data = None if payload is None else json.dumps(payload).encode('utf-8')
-              request = urllib.request.Request(url, data=data, method=method)
-              request.add_header('Authorization', f'Bearer {token}')
-              request.add_header('Accept', 'application/vnd.github+json')
-              request.add_header('X-GitHub-Api-Version', '2022-11-28')
-              if data is not None:
-                  request.add_header('Content-Type', 'application/json')
-              with urllib.request.urlopen(request) as response:
-                  return json.loads(response.read().decode('utf-8'))
-
-          parent_commit = api('GET', f'/git/commits/{parent_sha}')
-          base_tree_sha = parent_commit['tree']['sha']
-          changed_paths = [
-              item.decode('utf-8')
-              for item in subprocess.check_output(
-                  ['git', 'diff', '--name-only', '-z', 'HEAD']
-              ).split(b'\0')
-              if item
-          ]
-
-          tree_entries = []
-          for relative_path in changed_paths:
-              path = Path(relative_path)
-              if not path.exists():
-                  tree_entries.append({'path': relative_path, 'sha': None})
-                  continue
-
-              encoded = base64.b64encode(path.read_bytes()).decode('ascii')
-              blob = api(
-                  'POST',
-                  '/git/blobs',
-                  {'content': encoded, 'encoding': 'base64'},
-              )
-              index_line = subprocess.check_output(
-                  ['git', 'ls-files', '-s', '--', relative_path], text=True
-              ).strip()
-              mode = index_line.split()[0] if index_line else '100644'
-              tree_entries.append(
-                  {
-                      'path': relative_path,
-                      'mode': mode,
-                      'type': 'blob',
-                      'sha': blob['sha'],
-                  }
-              )
-
-          tree = api(
-              'POST',
-              '/git/trees',
-              {'base_tree': base_tree_sha, 'tree': tree_entries},
-          )
-          commit = api(
-              'POST',
-              '/git/commits',
-              {
-                  'message': 'Port stdlib2 continuation to Factorio 2.1',
-                  'tree': tree['sha'],
-                  'parents': [parent_sha],
-              },
-          )
-          encoded_branch = urllib.parse.quote(branch, safe='/')
-          api(
-              'PATCH',
-              f'/git/refs/heads/{encoded_branch}',
-              {'sha': commit['sha'], 'force': False},
-          )
-          print(f"Published continuation commit {commit['sha']}")
-          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Port stdlib2 continuation to Factorio 2.1"
+          git push origin HEAD:${TARGET_BRANCH}
