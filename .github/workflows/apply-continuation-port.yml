@@ -1,0 +1,44 @@
+name: Apply Factorio 2.1 continuation port
+
+on:
+  push:
+    branches:
+      - agent/factorio-2.1-continued
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the migration branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply rename and compatibility changes
+        run: python scripts/apply_continuation_port.py
+
+      - name: Commit generated source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet; then
+            echo "The continuation migration is already applied."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Port stdlib2 continuation to Factorio 2.1"
+          git push origin HEAD:${GITHUB_REF_NAME}
