@@ -4,19 +4,20 @@ on:
   push:
     branches:
       - agent/factorio-2.1-continued
-  pull_request:
-    branches:
-      - master
 
 permissions:
   contents: write
+
+concurrency:
+  group: stdlib2-continuation-migration
+  cancel-in-progress: false
 
 jobs:
   migrate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     env:
-      TARGET_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      TARGET_BRANCH: ${{ github.ref_name }}
 
     steps:
       - name: Check out the migration branch
