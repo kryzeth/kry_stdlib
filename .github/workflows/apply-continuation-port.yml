@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Normalize the legacy recipe-copy patch
+      - name: Normalize the migration helper
         shell: bash
         run: |
           python - <<'PY'
@@ -38,6 +38,7 @@ jobs:
 
           path = Path('scripts/apply_continuation_port.py')
           text = path.read_text(encoding='utf-8')
+
           start = text.index('def patch_recipe_copy_guard()')
           end = text.index('\n\ndef update_changelog()', start)
           replacement = '''def patch_recipe_copy_guard() -> bool:
@@ -53,7 +54,12 @@ jobs:
 
               return write_if_changed(path, text.replace(old, new, 1))
           '''
-          path.write_text(text[:start] + replacement + text[end:], encoding='utf-8', newline='\n')
+          text = text[:start] + replacement + text[end:]
+          text = text.replace(
+              'Mods using the former `__stdlib2__/` path must update their imports when switching to this continuation.',
+              'Mods using the former stdlib2 import root must update their imports when switching to this continuation.',
+          )
+          path.write_text(text, encoding='utf-8', newline='\n')
           PY
 
       - name: Apply rename and compatibility changes
