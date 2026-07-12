@@ -37,6 +37,7 @@ jobs:
 
           stale_imports = []
           stale_mod_checks = []
+          legacy_import_root = '__' + 'stdlib2__'
           legacy_mod_check = re.compile(
               r"(?:mods|script\.active_mods)\s*\[\s*['\"]stdlib2['\"]\s*\]"
           )
@@ -50,14 +51,14 @@ jobs:
                   continue
 
               relative = path.as_posix()
-              if '__stdlib2__' in text:
+              if legacy_import_root in text:
                   stale_imports.append(relative)
               if path.suffix == '.lua' and legacy_mod_check.search(text):
                   stale_mod_checks.append(relative)
 
           if stale_imports:
               raise SystemExit(
-                  'Legacy __stdlib2__ import roots remain in: '
+                  'Legacy stdlib2 import roots remain in: '
                   + ', '.join(stale_imports)
               )
           if stale_mod_checks:
