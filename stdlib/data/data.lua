@@ -1,21 +1,21 @@
 --- Data
 -- @classmod Data
 
-require('__stdlib2__/stdlib/core') -- Calling core up here to setup any required global stuffs
+require('__stdlib2-continued__/stdlib/core') -- Calling core up here to setup any required global stuffs
 
 if _G.remote and _G.script then
     error('Data Modules can only be required in the data stage', 2)
 end
 
-local Table = require('__stdlib2__/stdlib/utils/table')
-local groups = require('__stdlib2__/stdlib/data/modules/groups')
+local Table = require('__stdlib2-continued__/stdlib/utils/table')
+local groups = require('__stdlib2-continued__/stdlib/data/modules/groups')
 
 local Data = {
     __class = 'Data',
-    __index = require('__stdlib2__/stdlib/core'),
-    Sprites = require('__stdlib2__/stdlib/data/modules/sprites'),
-    Pipes = require('__stdlib2__/stdlib/data/modules/pipes'),
-    Util = require('__stdlib2__/stdlib/data/modules/util'),
+    __index = require('__stdlib2-continued__/stdlib/core'),
+    Sprites = require('__stdlib2-continued__/stdlib/data/modules/sprites'),
+    Pipes = require('__stdlib2-continued__/stdlib/data/modules/pipes'),
+    Util = require('__stdlib2-continued__/stdlib/data/modules/util'),
     _default_options = {
         ['silent'] = false, -- Don't log if not present
         ['fail'] = false, -- Error instead of logging
@@ -177,7 +177,7 @@ function Data:copy(new_name, result, opts)
         end
 
         -- For recipes, "result" is no longer in use
-        if copy.type == 'recipe' then
+        if copy.type == 'recipe' and copy.results then
             -- recipes with more than 1 result are too ambiguous to replace
             if #copy.results == 1 then 
                 copy.results[1].name = result

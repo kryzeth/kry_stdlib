@@ -1,10 +1,10 @@
 --- The game module.
 -- @module Game
--- @usage local Game = require('__stdlib2__/stdlib/game')
+-- @usage local Game = require('__stdlib2-continued__/stdlib/game')
 
 local Game = {
     __class = 'Game',
-    __index = require('__stdlib2__/stdlib/core')
+    __index = require('__stdlib2-continued__/stdlib/core')
 }
 setmetatable(Game, Game)
 local inspect = _ENV.inspect

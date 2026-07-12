@@ -1,6 +1,6 @@
 require('spec/setup/busted')()
 
-local string = require('__stdlib2__/stdlib/utils/string')
+local string = require('__stdlib2-continued__/stdlib/utils/string')
 
 describe('String Spec', function()
     describe('string.trim', function()

@@ -114,8 +114,8 @@ def patch_recipe_categories() -> bool:
 def patch_recipe_copy_guard() -> bool:
     path = ROOT / "stdlib" / "data" / "data.lua"
     text = path.read_text(encoding="utf-8")
-    old = "if copy.type == 'recipe' then\n            -- recipes with more than 1 result are too ambiguous to replace\n            if #copy.results == 1 then"
-    new = "if copy.type == 'recipe' and copy.results then\n            -- recipes with more than 1 result are too ambiguous to replace\n            if #copy.results == 1 then"
+    old = "if copy.type == 'recipe' then"
+    new = "if copy.type == 'recipe' and copy.results then"
 
     if new in text:
         return False
@@ -175,7 +175,7 @@ Import modules through the new mod root:
 local Event = require("__stdlib2-continued__/stdlib/event/event")
 ```
 
-Mods using the former `__stdlib2__/` path must update their imports when switching to this continuation.
+Mods using the former stdlib2 import root must update their imports when switching to this continuation.
 
 ## Compatibility
 

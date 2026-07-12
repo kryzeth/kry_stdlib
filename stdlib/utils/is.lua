@@ -1,7 +1,7 @@
 --- Is expression library
 -- @module Utils.Is
 -- @usage
--- local Is = require('__stdlib2__/stdlib/utils/is')
+-- local Is = require('__stdlib2-continued__/stdlib/utils/is')
 -- Is.True(true)
 -- Is.Not.True(false)
 -- Is.Assert.True(true)
@@ -353,7 +353,7 @@ M.alphanumword = M.AlphanumWord
 -- @tparam LuaObject var The variable to check
 -- @treturn mixed the var if this is an LuaObject
 function M.Object(var)
-    return M.Table(var) and var.__self and var
+    return M.Userdata(var) and var
 end
 M.object = M.Object
 

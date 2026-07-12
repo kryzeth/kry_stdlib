@@ -1,8 +1,8 @@
 require('spec/setup/busted')()
 
-local Area = require('__stdlib2__/stdlib/area/area')
+local Area = require('__stdlib2-continued__/stdlib/area/area')
 local A = Area
-local P = require('__stdlib2__/stdlib/area/position')
+local P = require('__stdlib2-continued__/stdlib/area/position')
 local rs = rawtostring
 
 describe('Area', function ()

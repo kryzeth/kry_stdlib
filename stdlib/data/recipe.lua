@@ -1,8 +1,8 @@
 --- Recipe class
 -- @classmod Data.Recipe
 
-local Data = require('__stdlib2__/stdlib/data/data')
-local Table = require('__stdlib2__/stdlib/utils/table')
+local Data = require('__stdlib2-continued__/stdlib/data/data')
+local Table = require('__stdlib2-continued__/stdlib/utils/table')
 
 local Recipe = {
     __class = 'Recipe',
@@ -19,7 +19,7 @@ setmetatable(Recipe, Recipe)
 
 -- Returns a formated ingredient or prodcut table
 local function format(ingredient, result_count)
-    local Item = require('__stdlib2__/stdlib/data/item')
+    local Item = require('__stdlib2-continued__/stdlib/data/item')
     local object
     if type(ingredient) == 'table' then
         if ingredient.valid and ingredient:is_valid() then
@@ -242,24 +242,44 @@ function Recipe:make_difficult(expensive_energy)
     return self
 end
 
---- Change the recipe category.
--- @tparam string category_name The new crafting category
+--- Change the recipe categories.
+-- @tparam string|table category_names The new crafting category or categories
 -- @treturn self
-function Recipe:change_category(category_name)
-    if self:is_valid() then
-        local Category = require('__stdlib2__/stdlib/data/category')
-        self.category = Category(category_name, 'recipe-category'):is_valid() and category_name or self.category
+function Recipe:change_category(category_names)
+    if not self:is_valid() then
+        return self
+    end
+
+    if type(category_names) == 'string' then
+        category_names = {category_names}
+    end
+    if type(category_names) ~= 'table' or #category_names == 0 then
+        return self
+    end
+
+    local Category = require('__stdlib2-continued__/stdlib/data/category')
+    local valid_categories = {}
+    for _, category_name in ipairs(category_names) do
+        if Category(category_name, 'recipe-category'):is_valid() then
+            valid_categories[#valid_categories + 1] = category_name
+        end
+    end
+
+    if #valid_categories == #category_names then
+        self.categories = valid_categories
+        self.category = nil
     end
     return self
 end
 Recipe.set_category = Recipe.change_category
+Recipe.set_categories = Recipe.change_category
 
 --- Add to technology as a recipe unlock.
 -- @tparam string tech_name Name of the technology to add the unlock too
 -- @treturn self
 function Recipe:add_unlock(tech_name)
     if self:is_valid() then
-        local Tech = require('__stdlib2__/stdlib/data/technology')
+        local Tech = require('__stdlib2-continued__/stdlib/data/technology')
         Tech.add_effect(self, tech_name) --self is passed as a valid recipe
     end
     return self
@@ -270,7 +290,7 @@ end
 -- @treturn self
 function Recipe:remove_unlock(tech_name)
     if self:is_valid('recipe') then
-        local Tech = require('__stdlib2__/stdlib/data/technology')
+        local Tech = require('__stdlib2-continued__/stdlib/data/technology')
         Tech.remove_effect(self, tech_name, 'unlock-recipe')
     end
     return self
@@ -331,7 +351,7 @@ function Recipe:set_main_product(main_product, normal, expensive)
         normal, expensive = get_difficulties(normal, expensive)
         local normal_main, expensive_main
         if main_product then
-            local Item = require('__stdlib2__/stdlib/data/item')
+            local Item = require('__stdlib2-continued__/stdlib/data/item')
             if type(main_product) == 'string' and Item(main_product):is_valid() then
                 normal_main = normal and main_product
                 expensive_main = expensive and main_product

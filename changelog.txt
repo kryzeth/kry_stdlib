@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.0
+Date: 2026-07-12
+  Changes:
+    - Renamed the mod to stdlib2-continued for a new community-maintained Mod Portal release.
+    - Updated the minimum supported Factorio version to 2.1.
+    - Rewrote all cross-mod import paths for the new internal mod name.
+  Bugfixes:
+    - Updated Recipe:change_category to use the Factorio 2.1 categories array.
+    - Updated LuaObject detection for userdata-based Factorio objects.
+    - Made recipe copying tolerate recipes without a results table.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.2
 Date: 2024-00-00
   Info:

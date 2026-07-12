@@ -8,7 +8,7 @@ describe(
         before_each(
             function()
                 require('faketorio/dataloader')
-                Technology = require('__stdlib2__/stdlib/data/technology')
+                Technology = require('__stdlib2-continued__/stdlib/data/technology')
             end
         )
 

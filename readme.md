@@ -1,29 +1,41 @@
-# Factorio-Stdlib
+# Factorio Standard Library 2.1 Continued
 
-Factorio Standard Library Project
+An unofficial community-maintained continuation of the Factorio Standard Library for Factorio 2.1.
 
-## About
+The library provides reusable utilities for events, data-stage prototype manipulation, positions, areas, tables, logging, player data and other common modding tasks.
 
-The Factorio Standard Library is a project to bring Factorio modders high-quality, commonly-required utilities and tools that developers have been often copying around, remixing, and rewriting poor quality copies of. Factorio mods often re-implement basic tools like logging, math calculations, and position or area manipulation. These common operations can be a subtle source of errors and their regular occurance has encouraged the creation of the Factorio Stdlib, as a toolbox and set of utilities for modders. Factorio Standard Library APIs are all unit-tested, documented, and high quality, and written to be simple and straightforward for the earliest beginners and seasoned developers alike.
+## Status
+
+This branch is the initial Factorio 2.1 port and is still undergoing compatibility testing. The existing public API is preserved where practical, but not every historical module has yet been exercised in Factorio 2.1.
 
 ## Usage
 
-1. Install the Factorio Standard Library  mod from the mod portal [latest release](https://mods.factorio.com/mod/stdlib)
-2. In your `info.json` add `stdlib` as a dependency.
-3. In your `control.lua` or other lua modules, [you can import the stdlib modules you need](https://github.com/Afforess/Factorio-Stdlib/wiki/Home#adding-factorio-stdlib-to-your-mod).
+Add the continuation as a dependency:
 
-## Documentation
+```json
+"dependencies": [
+  "stdlib2-continued >= 2.1.0"
+]
+```
 
-See [the wiki](https://github.com/Afforess/Factorio-Stdlib/wiki) for an introduction and usage/examples.
+Import modules through the new mod root:
 
-See the [github pages](http://afforess.github.io/Factorio-Stdlib/) for the latest generated documentation of the Factorio-stdlib
+```lua
+local Event = require("__stdlib2-continued__/stdlib/event/event")
+```
 
-## Unit Tests
+Mods using the former stdlib2 import root must update their imports when switching to this continuation.
 
-The codebase is tested with [`busted`](http://olivinelabs.com/busted). Test specifications are located under `spec/`
+## Compatibility
 
-## Contributing
+- Factorio 2.1
+- Base game required
+- Space Age is optional
 
-Contributions are welcome! Please follow general lua coding standards and include ldoc-compatible comments.
+## Credits
 
-[![Circle CI](https://circleci.com/gh/Afforess/Factorio-Stdlib/tree/master.svg?style=svg)](https://circleci.com/gh/Afforess/Factorio-Stdlib/tree/master)
+Originally created by Afforess and maintained by the Factorio modding community. The Factorio 2.0 reupload and fixes by Jackie P. Mueller and contributors are retained. This continuation preserves the original licence and attribution.
+
+## Development
+
+Please report reproducible Factorio 2.1 compatibility problems through this repository's issue tracker. Include the failing module, error message and a minimal usage example where possible.
