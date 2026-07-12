@@ -1,0 +1,212 @@
+name: Build Factorio mod package
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v[0-9]*'
+      - '[0-9]*'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Package mod
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install packaging tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet \
+            jq rsync zip unzip
+
+      - name: Read and validate mod metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          name="$(jq -er '.name' info.json)"
+          version="$(jq -er '.version' info.json)"
+          title="$(jq -er '.title // .name' info.json)"
+          package="${name}_${version}"
+          archive="${package}.zip"
+          checksum="${archive}.sha256"
+
+          if [[ ! "${name}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+            echo "::error::Invalid Factorio mod name in info.json: ${name}"
+            exit 1
+          fi
+
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid Factorio mod version in info.json: ${version}"
+            exit 1
+          fi
+
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            tag_version="${GITHUB_REF_NAME#v}"
+            if [[ "${tag_version}" != "${version}" ]]; then
+              echo "::error::Tag ${GITHUB_REF_NAME} does not match info.json version ${version}."
+              exit 1
+            fi
+          fi
+
+          {
+            echo "name=${name}"
+            echo "version=${version}"
+            echo "title=${title}"
+            echo "package=${package}"
+            echo "archive=${archive}"
+            echo "checksum=${checksum}"
+          } >> "${GITHUB_OUTPUT}"
+
+          echo "Package folder: ${package}/"
+          echo "Archive name:  ${archive}"
+
+      - name: Build Factorio-compatible ZIP
+        shell: bash
+        env:
+          PACKAGE: ${{ steps.meta.outputs.package }}
+          ARCHIVE: ${{ steps.meta.outputs.archive }}
+          CHECKSUM: ${{ steps.meta.outputs.checksum }}
+        run: |
+          set -euo pipefail
+
+          rm -rf dist
+          mkdir -p "dist/${PACKAGE}"
+
+          excludes=(
+            --exclude='.git/'
+            --exclude='.github/'
+            --exclude='.circleci/'
+            --exclude='.build/'
+            --exclude='.bin/'
+            --exclude='.output/'
+            --exclude='.temp/'
+            --exclude='.trash/'
+            --exclude='.history/'
+            --exclude='.vscode/'
+            --exclude='.idea/'
+            --exclude='dist/'
+            --exclude='*.zip'
+            --exclude='busted.log'
+            --exclude='harness-files.txt'
+            --exclude='.gitignore'
+            --exclude='.gitattributes'
+            --exclude='.luacheckrc'
+          )
+
+          while IFS= read -r pattern; do
+            [[ -n "${pattern}" ]] && excludes+=(--exclude="${pattern}")
+          done < <(jq -r '.package.ignore[]?' info.json)
+
+          rsync -a --prune-empty-dirs "${excludes[@]}" ./ "dist/${PACKAGE}/"
+
+          test -f "dist/${PACKAGE}/info.json"
+          test -d "dist/${PACKAGE}/stdlib"
+
+          (
+            cd dist
+            zip -rq "${ARCHIVE}" "${PACKAGE}"
+            sha256sum "${ARCHIVE}" > "${CHECKSUM}"
+          )
+
+      - name: Verify archive structure and metadata
+        shell: bash
+        env:
+          MOD_NAME: ${{ steps.meta.outputs.name }}
+          MOD_VERSION: ${{ steps.meta.outputs.version }}
+          PACKAGE: ${{ steps.meta.outputs.package }}
+          ARCHIVE: ${{ steps.meta.outputs.archive }}
+        run: |
+          set -euo pipefail
+
+          archive_path="dist/${ARCHIVE}"
+
+          mapfile -t roots < <(
+            unzip -Z1 "${archive_path}" \
+              | sed '/^$/d' \
+              | cut -d/ -f1 \
+              | sort -u
+          )
+
+          if [[ "${#roots[@]}" -ne 1 || "${roots[0]}" != "${PACKAGE}" ]]; then
+            echo "::error::Archive must contain exactly one top-level folder named ${PACKAGE}."
+            printf 'Detected roots: %s\n' "${roots[@]:-none}"
+            exit 1
+          fi
+
+          embedded_name="$(unzip -p "${archive_path}" "${PACKAGE}/info.json" | jq -er '.name')"
+          embedded_version="$(unzip -p "${archive_path}" "${PACKAGE}/info.json" | jq -er '.version')"
+
+          if [[ "${embedded_name}" != "${MOD_NAME}" || "${embedded_version}" != "${MOD_VERSION}" ]]; then
+            echo "::error::Packaged info.json does not match the expected mod name and version."
+            exit 1
+          fi
+
+          offending_paths="$(
+            unzip -Z1 "${archive_path}" \
+              | grep -E "^${PACKAGE}/(\.git|\.github|spec|tools|doc|wiki|faketorio)(/|$)" \
+              || true
+          )"
+
+          if [[ -n "${offending_paths}" ]]; then
+            echo "::error::Development-only files were included in the mod archive."
+            printf '%s\n' "${offending_paths}"
+            exit 1
+          fi
+
+          echo "Verified ${ARCHIVE}"
+          unzip -l "${archive_path}" | tail -n 5
+
+      - name: Upload mod ZIP
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.meta.outputs.archive }}
+          path: dist/${{ steps.meta.outputs.archive }}
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload SHA-256 checksum
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.meta.outputs.checksum }}
+          path: dist/${{ steps.meta.outputs.checksum }}
+          archive: false
+          if-no-files-found: error
+
+      - name: Create or update GitHub release
+        if: github.ref_type == 'tag'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.meta.outputs.title }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          ARCHIVE: ${{ steps.meta.outputs.archive }}
+          CHECKSUM: ${{ steps.meta.outputs.checksum }}
+        run: |
+          set -euo pipefail
+
+          if ! gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release create "${GITHUB_REF_NAME}" \
+              --verify-tag \
+              --generate-notes \
+              --title "${TITLE} ${VERSION}"
+          fi
+
+          gh release upload "${GITHUB_REF_NAME}" \
+            "dist/${ARCHIVE}" \
+            "dist/${CHECKSUM}" \
+            --clobber
