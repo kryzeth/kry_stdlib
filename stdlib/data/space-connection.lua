@@ -2,7 +2,7 @@ local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 local Space = require('__kry_stdlib__/stdlib/data/space')
 
 --- SpaceConnection
---- @class StdLib.Data.SpaceConnection : StdLib.Data.Space
+---@class StdLib.Data.SpaceConnection : StdLib.Data.Space
 local SpaceConnection = {
     __class = 'SpaceConnection',
 }

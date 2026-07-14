@@ -1,7 +1,7 @@
 local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 
 --- Developer
---- @class StdLib.Developer : StdLib.Data
+---@class StdLib.Developer : StdLib.Data
 
 local Data = require('__kry_stdlib__/stdlib/data/data')
 

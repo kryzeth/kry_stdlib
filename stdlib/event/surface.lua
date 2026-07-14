@@ -4,8 +4,8 @@ local Event = require('__kry_stdlib__/stdlib/event/event')
 -- <p>All surfaces will be added to the `storage.surfaces` table.
 -- <p>This modules events should be registered after any other Init functions but before any scripts needing `storage.surfaces`.
 -- <p>This modules can register the following events:
---- @class StdLib.Event.Surface
---- @usage
+---@class StdLib.Event.Surface
+---@usage
 --- local surface = require('__kry_stdlib__/stdlib/event/surface').register_events()
 local Surface = {
     __class = 'Surface',
@@ -37,7 +37,7 @@ function Surface.additional_data(...)
 end
 
 --- Remove data for a surface when it is deleted.
---- @param event table event table containing the surface index
+---@param event table event table containing the surface index
 function Surface.remove(event)
     storage.surfaces[event.surface_index] = nil
 end
@@ -55,8 +55,8 @@ end
 
 --- Init or re-init the surfaces.
 -- Passing a `nil` event will iterate all existing surfaces.
---- @param event nil|number|table|string|LuaSurface [opt]
---- @param overwrite boolean? [opt=false] the surface data
+---@param event nil|number|table|string|LuaSurface [opt]
+---@param overwrite boolean? [opt=false] the surface data
 function Surface.init(event, overwrite)
     -- Create the storage.surfaces table if it doesn't exisit
     storage.surfaces = storage.surfaces or {}

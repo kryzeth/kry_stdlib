@@ -1,9 +1,9 @@
 --- Tools for working with bounding boxes.
---- @class StdLib.Area : StdLib.Core
---- @usage local Area = require('__kry_stdlib__/stdlib/area/area')
---- @see StdLib.Area.Position
---- @see BoundingBox
---- @see Position
+---@class StdLib.Area : StdLib.Core
+---@usage local Area = require('__kry_stdlib__/stdlib/area/area')
+---@see StdLib.Area.Position
+---@see BoundingBox
+---@see Position
 local Area = {
 	__class = 'Area',
 	__index = require('__kry_stdlib__/stdlib/core') --[[@as StdLib.Core]]
@@ -43,8 +43,8 @@ end
 
 --- Converts an area in either array or table format to an area with a metatable.
 -- Returns itself if it already has a metatable
---- @param area BoundingBox the area to convert
---- @return BoundingBox #a converted area
+---@param area BoundingBox the area to convert
+---@return BoundingBox #a converted area
 function Area.new(area)
     local left_top = Position.new(area.left_top or area[1])
     local right_bottom = Position.new(area.right_bottom or area[2] or area[1])
@@ -52,11 +52,11 @@ function Area.new(area)
 end
 
 --- Creates an area from number parameters.
---- @tparam x1 number [opt=0] x-position of left_top, first position
---- @tparam y1 number [opt=0] y-position of left_top, first position
---- @tparam x2 number [opt=0] x-position of right_bottom, second position
---- @tparam y2 number [opt=0] y-position of right_bottom, second position
---- @treturn BoundingBox #the area in a table format
+---@tparam x1 number [opt=0] x-position of left_top, first position
+---@tparam y1 number [opt=0] y-position of left_top, first position
+---@tparam x2 number [opt=0] x-position of right_bottom, second position
+---@tparam y2 number [opt=0] y-position of right_bottom, second position
+---@treturn BoundingBox #the area in a table format
 function Area.construct(...)
     local args = type((...)) == 'table' and { select(2, ...) } or { select(1, ...) }
 
@@ -69,8 +69,8 @@ end
 
 
 --- Loads the metatable into the passed Area without creating a new one.
---- @param area BoundingBox the Area to set the metatable onto
---- @return BoundingBox #the Area with metatable attached
+---@param area BoundingBox the Area to set the metatable onto
+---@return BoundingBox #the Area with metatable attached
 function Area.load(area)
     area.left_top = Position.load(area.left_top)
     area.right_bottom = Position.load(area.right_bottom)
@@ -78,15 +78,15 @@ function Area.load(area)
 end
 
 --- Converts an area string to an area.
---- @param area_string string the area to convert
---- @return BoundingBox
+---@param area_string string the area to convert
+---@return BoundingBox
 function Area.from_string(area_string)
     return Area(load('return ' .. area_string)())
 end
 
 --- Converts a string key area to an area.
---- @param area_string string the area to convert
---- @return BoundingBox
+---@param area_string string the area to convert
+---@return BoundingBox
 function Area.from_key(area_string)
 	function n(v) return tonumber(v) or error('Invalid number: ' .. v) end
     local tab = string.split(area_string, ',', false, tonumber)
@@ -100,15 +100,15 @@ end
 
 --- Stores the area for recall later, not deterministic.
 -- Only the last area stored is saved.
---- @param area BoundingBox
+---@param area BoundingBox
 function Area.store(area)
     rawset(getmetatable(area), '_saved', area)
     return area
 end
 
 --- Recalls the stored area.
---- @param area BoundingBox
---- @return BoundingBox #the stored area
+---@param area BoundingBox
+---@return BoundingBox #the stored area
 function Area.recall(area)
     return rawget(getmetatable(area), '_saved')
 end
@@ -118,8 +118,8 @@ end
 -- <li>Swaps the values between `right_bottom.x` & `left_top.x` **IF** `right_bottom.x` < `left_top.x`
 -- <li>Swaps the values between `right_bottom.y` & `left_top.y` **IF** `right_bottom.y` < `left_top.y`
 -- </ul>
---- @param area BoundingBox the area to normalize
---- @return BoundingBox #a new normalized area
+---@param area BoundingBox the area to normalize
+---@return BoundingBox #a new normalized area
 function Area.normalize(area)
     local left_top = Position.new(area.left_top)
     local right_bottom = Position.new(area.right_bottom)
@@ -131,8 +131,8 @@ function Area.normalize(area)
 end
 
 --- Normalize an area in place.
---- @param area BoundingBox the area to normalize
---- @return BoundingBox area #The area normalized in place
+---@param area BoundingBox the area to normalize
+---@return BoundingBox area #The area normalized in place
 function Area.normalized(area)
     local lt, rb = area.left_top, area.right_bottom
     if rb.x < lt.x then lt.x, rb.x = rb.x, lt.x end
@@ -141,36 +141,36 @@ function Area.normalized(area)
 end
 
 --- Convert area from pixels.
---- @param area BoundingBox
---- @return BoundingBox
+---@param area BoundingBox
+---@return BoundingBox
 function Area.from_pixels(area)
     return new_area(Position.from_pixels(area.left_top), Position.from_pixels(area.right_bottom), area.orientation)
 end
 
 --- Convert area to pixels.
---- @param area BoundingBox
---- @return BoundingBox
+---@param area BoundingBox
+---@return BoundingBox
 function Area.to_pixels(area)
     return new_area(Position.to_pixels(area.left_top), Position.to_pixels(area.right_bottom), area.orientation)
 end
 
 --- Rounds an areas points to its closest integer.
---- @param area BoundingBox
---- @return BoundingBox
+---@param area BoundingBox
+---@return BoundingBox
 function Area.round(area)
     return new_area(Position.round(area.left_top), Position.round(area.right_bottom), area.orientation)
 end
 
 --- Ceils an area by increasing the size of the area outwards
---- @param area BoundingBox the area to round
---- @return BoundingBox
+---@param area BoundingBox the area to round
+---@return BoundingBox
 function Area.ceil(area)
     return new_area(Position.floor(area.left_top), Position.ceil(area.right_bottom), area.orientation)
 end
 
 --- Floors an area by decreasing the size of the area inwards.
---- @param area BoundingBox the area to round
---- @return BoundingBox
+---@param area BoundingBox the area to round
+---@return BoundingBox
 function Area.floor(area)
     return new_area(Position.ceil(area.left_top), Position.floor(area.right_bottom), area.orientation)
 end
@@ -187,8 +187,8 @@ local function right_bottom_center(pos)
 end
 
 --- Gets the center positions of the tiles where the given area's two positions reside.
---- @param area BoundingBox
---- @return BoundingBox #the area with its two positions at the center of the tiles in which they reside
+---@param area BoundingBox
+---@return BoundingBox #the area with its two positions at the center of the tiles in which they reside
 function Area.center_points(area)
     return new_area(Position.center(area.left_top), right_bottom_center(area.right_bottom), area.orientation)
 end
@@ -198,8 +198,8 @@ end
 ---@field right_top Position
 
 --- add left_bottom and right_top to the area
---- @param area BoundingBox
---- @return BoundingBox.corners #the area with left_bottom and right_top included
+---@param area BoundingBox
+---@return BoundingBox.corners #the area with left_bottom and right_top included
 function Area.corners(area)
 	---@cast area BoundingBox.corners
     local lt, rb = area.left_top, area.right_bottom
@@ -214,8 +214,8 @@ function Area.corners(area)
 end
 
 --- Flip an area such that the value of its width becomes its height, and the value of its height becomes its width.
---- @param area BoundingBox the area to flip
---- @return BoundingBox #the fliped area
+---@param area BoundingBox the area to flip
+---@return BoundingBox #the fliped area
 function Area.flip(area)
     local w, h = Area.dimensions(area)
     if h > w then
@@ -230,52 +230,52 @@ function Area.flip(area)
 end
 
 --- Return a non zero sized area by expanding if needed
---- @param area BoundingBox the area to check
---- @param amount number|Vector the amount to expand
---- @return BoundingBox the area
+---@param area BoundingBox the area to check
+---@param amount number|Vector the amount to expand
+---@return BoundingBox the area
 function Area.non_zero(area, amount)
     amount = amount or 0.01
     return Area.size(area) == 0 and Area.expand(area, amount) or area
 end
 
 --- Returns the area to the diameter from left_top
---- @param area BoundingBox
---- @param diameter number
---- @return BoundingBox
+---@param area BoundingBox
+---@param diameter number
+---@return BoundingBox
 function Area.to_diameter(area, diameter)
     diameter = diameter or 0.1
     return new_area(Position.new(area.left_top), Position.add(area.left_top + diameter))
 end
 
 --- Returns the smallest sized area.
---- @param area BoundingBox
---- @param area2 BoundingBox
---- @return BoundingBox the smallest area
+---@param area BoundingBox
+---@param area2 BoundingBox
+---@return BoundingBox the smallest area
 function Area.min(area, area2)
     return (Area.size(Area) <= Area.size(area2) and area) or area2
 end
 
 --- Returns the largest sized area.
---- @param area BoundingBox
---- @param area2 BoundingBox
---- @return BoundingBox the largest area
+---@param area BoundingBox
+---@param area2 BoundingBox
+---@return BoundingBox the largest area
 function Area.max(area, area2)
     return (Area.size(area) >= Area.size(area2) and area) or area2
 end
 
 --- Shrinks the area inwards by the given amount.
 -- The area shrinks inwards from top-left towards the bottom-right, and from bottom-right towards the top-left.
---- @param area BoundingBox the area to shrink
---- @param amount number|Vector the amount to shrink
---- @return BoundingBox the area reduced by amount
+---@param area BoundingBox the area to shrink
+---@param amount number|Vector the amount to shrink
+---@return BoundingBox the area reduced by amount
 function Area.shrink(area, amount)
     return new_area(Position.add(area.left_top, amount), Position.subtract(area.right_bottom, amount))
 end
 
 --- Expands the area outwards by the given amount.
---- @param area BoundingBox the area
---- @param amount number|Vector to expand each edge of the area outwards by
---- @return BoundingBox the area expanded by amount
+---@param area BoundingBox the area
+---@param amount number|Vector to expand each edge of the area outwards by
+---@return BoundingBox the area expanded by amount
 -- @see Area.shrink
 function Area.expand(area, amount)
     return new_area(Position.subtract(area.left_top, amount), Position.add(area.right_bottom, amount))
@@ -285,9 +285,9 @@ end
 -- Imagine pinching & holding with fingers the top-left & bottom-right corners of a 2D box and pulling outwards to expand and pushing inwards to shrink the box.
 -- @usage local area = Area.adjust({{-2, -2}, {2, 2}}, {4, -1})
 -- -- returns {left_top = {x = -6, y = -1}, right_bottom = {x = 6, y = 1}}
---- @param area BoundingBox the area to adjust
---- @param amount number|Vector the vectors to use
---- @return BoundingBox # adjusted bounding box
+---@param area BoundingBox the area to adjust
+---@param amount number|Vector the vectors to use
+---@return BoundingBox # adjusted bounding box
 function Area.adjust(area, amount)
     local vec = Position(amount)
     area = Area.new(area)
@@ -310,9 +310,9 @@ function Area.adjust(area, amount)
 end
 
 --- Offsets the area by the `{x, y}` values.
---- @param area BoundingBox the area to offset
---- @param pos Position the position to which the area will offset
---- @return BoundingBox #the area offset by the position
+---@param area BoundingBox the area to offset
+---@param pos Position the position to which the area will offset
+---@return BoundingBox #the area offset by the position
 function Area.offset(area, pos)
     local vec = Position(pos)
 
@@ -320,10 +320,10 @@ function Area.offset(area, pos)
 end
 
 --- Translates an area in the given direction.
---- @param area BoundingBox the area to translate
---- @param direction defines.direction the direction of translation
---- @param distance number the distance of the translation
---- @return BoundingBox #the area translated
+---@param area BoundingBox the area to translate
+---@param direction defines.direction the direction of translation
+---@param distance number the distance of the translation
+---@return BoundingBox #the area translated
 function Area.translate(area, direction, distance)
     direction = direction or 0
     distance = distance or 1
@@ -333,9 +333,9 @@ function Area.translate(area, direction, distance)
 end
 
 --- Set an area to the whole size of the surface.
---- @param area BoundingBox
---- @param surface LuaSurface
---- @return BoundingBox
+---@param area BoundingBox
+---@param surface LuaSurface
+---@return BoundingBox
 function Area.to_surface_size(area, surface)
     local w, h = surface.map_gen_settings.width, surface.map_gen_settings.height
     area.left_top.x = -(w / 2)
@@ -346,9 +346,9 @@ function Area.to_surface_size(area, surface)
 end
 
 --- Shrinks an area to the size of the surface if it is bigger.
---- @param area BoundingBox
---- @param surface LuaSurface
---- @return BoundingBox
+---@param area BoundingBox
+---@param surface LuaSurface
+---@return BoundingBox
 function Area.shrink_to_surface_size(area, surface)
     local w, h = surface.map_gen_settings.width, surface.map_gen_settings.height
     if abs(area.left_top.x) > w / 2 then
@@ -363,8 +363,8 @@ function Area.shrink_to_surface_size(area, surface)
 end
 
 --- Return the chunk coordinates from an area.
---- @param area BoundingBox
---- @return BoundingBox #Chunk position coordinates
+---@param area BoundingBox
+---@return BoundingBox #Chunk position coordinates
 function Area.to_chunk_coords(area)
     return Area.load {
         left_top = { x = floor(area.left_top.x / 32), y = floor(area.left_top.y / 32) },
@@ -376,8 +376,8 @@ end
 -- @section ConversionFunctions
 
 --- Calculates the center of the area and returns the position.
---- @param area BoundingBox the area
---- @return Position #the center of the area
+---@param area BoundingBox the area
+---@return Position #the center of the area
 function Area.center(area)
     local dist_x = area.right_bottom.x - area.left_top.x
     local dist_y = area.right_bottom.y - area.left_top.y
@@ -389,15 +389,15 @@ end
 -- @section Functions
 
 --- Return a suitable string for using as a table key
---- @param area BoundingBox
+---@param area BoundingBox
 -- @return string
 function Area.to_key(area)
     return table.concat({ area.left_top.x, area.left_top.y, area.right_bottom.x, area.right_bottom.y }, ',')
 end
 
 --- Converts an area to a string.
---- @param area BoundingBox the area to convert
---- @return string #the string representation of the area
+---@param area BoundingBox the area to convert
+---@return string #the string representation of the area
 function Area.to_string(area)
     local left_top = 'left_top = ' .. area.left_top
     local right_bottom = 'right_bottom = ' .. area.right_bottom
@@ -408,101 +408,101 @@ function Area.to_string(area)
 end
 
 --- Converts an area to an ltx, lty / rbx, rby string.
---- @param area BoundingBox the area to convert
---- @return string the string representation of the area
+---@param area BoundingBox the area to convert
+---@return string the string representation of the area
 function Area.to_string_xy(area)
     return table.concat(area.left_top, ', ') .. ' / ' .. table.concat(area.right_bottom, ', ')
 end
 
 --- Is this a non zero sized area
---- @param area BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@return boolean
 function Area.is_zero(area)
     return Area.size(area) == 0
 end
 
 --- Is the area normalized.
---- @param area BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@return boolean
 function Area.is_normalized(area)
     return area.right_bottom.x >= area.left_top.x and area.right_bottom.y >= area.left_top.y
 end
 
 --- Is the area non-zero and normalized.
---- @param area BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@return boolean
 function Area.valid(area)
     return Area.is_normalized(area) and Area.size(area) ~= 0
 end
 
 --- Is this a simple area. {{num, num}, {num, num}}
---- @param area BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@return boolean
 function Area.is_simple_area(area)
     return Position.is_simple_position(area[1]) and Position.is_simple_position(area[2])
 end
 
 --- Is this a complex area {left_top = {x = num, y = num}, right_bottom = {x = num, y = num}}
---- @param area BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@return boolean
 function Area.is_complex_area(area)
     return Position.is_complex_position(area.left_top) and Position.is_complex_position(area.right_bottom)
 end
 
 --- Is this and area of any kind.
---- @param area BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@return boolean
 function Area.is_area(area)
     return Area.is_Area(area) or Area.is_complex_area(area) or Area.is_simple_area(area)
 end
 
 --- Does the area have the class attached
---- @param area BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@return boolean
 function Area.is_Area(area)
     return getmetatable(area) == metatable
 end
 
 --- Unpack an area into a tuple.
---- @param area BoundingBox
---- @return number lt.x
---- @return number lt.y
---- @return number rb.x
---- @return number rb.y
---- @return float orientation
+---@param area BoundingBox
+---@return number lt.x
+---@return number lt.y
+---@return number rb.x
+---@return number rb.y
+---@return float orientation
 function Area.unpack(area)
     return area.left_top.x, area.left_top.y, area.right_bottom.x, area.right_bottom.y, area.orientation
 end
 
 --- Unpack an area into a tuple of position tables.
---- @param area BoundingBox
---- @return Position left_top
---- @return Position right_bottom
+---@param area BoundingBox
+---@return Position left_top
+---@return Position right_bottom
 function Area.unpack_positions(area)
     return area.left_top, area.right_bottom
 end
 
 --- Pack an area into an array.
---- @param area BoundingBox
---- @return BoundingBox array
+---@param area BoundingBox
+---@return BoundingBox array
 function Area.pack(area)
     return { area.left_top.x, area.left_top.y, area.right_bottom.x, area.right_bottom.y, area.orientation }
 end
 
 --- Pack an area into a simple bounding box array
---- @param area BoundingBox
---- @return BoundingBox #simple array
+---@param area BoundingBox
+---@return BoundingBox #simple array
 function Area.pack_positions(area)
     return { { area.left_top.x, area.left_top.y }, { area.right_bottom.x, area.right_bottom.y } }
 end
 
 --- Gets the properties of the given area.
 -- This function returns a total of four values that represent the properties of the given area.
---- @param area BoundingBox the area from which to get the size
---- @return number the size of the area &mdash; (width &times; height)
---- @return number the width of the area
---- @return number the height of the area
---- @return number the perimeter of the area &mdash; (2 &times; (width + height))
+---@param area BoundingBox the area from which to get the size
+---@return number the size of the area &mdash; (width &times; height)
+---@return number the width of the area
+---@return number the height of the area
+---@return number the perimeter of the area &mdash; (2 &times; (width + height))
 function Area.size(area)
     local width = Area.width(area)
     local height = Area.height(area)
@@ -512,48 +512,48 @@ function Area.size(area)
 end
 
 --- Return the rectangle.
---- @param area BoundingBox
---- @return number left_top.x
---- @return number left_top.y
---- @return number width
---- @return number height
+---@param area BoundingBox
+---@return number left_top.x
+---@return number left_top.y
+---@return number width
+---@return number height
 function Area.rectangle(area)
     return area.left_top.x, area.left_top.y, Area.width(area), Area.height(area)
 end
 
 --- The width of the area.
---- @param area BoundingBox
---- @return number width
+---@param area BoundingBox
+---@return number width
 function Area.width(area)
     return abs(area.left_top.x - area.right_bottom.x)
 end
 
 --- The height of an area.
---- @param area BoundingBox
---- @return number width
+---@param area BoundingBox
+---@return number width
 function Area.height(area)
     return abs(area.left_top.y - area.right_bottom.y)
 end
 
 --- The dimensions of an area.
---- @param area BoundingBox
---- @return number width
---- @return number height
+---@param area BoundingBox
+---@return number width
+---@return number height
 function Area.dimensions(area)
     return Area.width(area), Area.height(area)
 end
 
 --- The Perimiter of an area.
---- @param area BoundingBox
---- @return number width
+---@param area BoundingBox
+---@return number width
 function Area.perimeter(area)
     return (Area.width(area) + Area.height(area)) * 2
 end
 
 --- Returns true if two areas are the same.
---- @param area1 BoundingBox
---- @param area2 BoundingBox
---- @return boolean true if areas are the same
+---@param area1 BoundingBox
+---@param area2 BoundingBox
+---@return boolean true if areas are the same
 function Area.equals(area1, area2)
     if not (area1 and area2) then return false end
     local ori = area1.orientation or 0 == area2.orientation or 0
@@ -561,9 +561,9 @@ function Area.equals(area1, area2)
 end
 
 --- Is area1 smaller in size than area2
---- @param area1 BoundingBox
---- @param area2 BoundingBox
---- @return boolean #is area1 less than area2 in size
+---@param area1 BoundingBox
+---@param area2 BoundingBox
+---@return boolean #is area1 less than area2 in size
 function Area.less_than(area1, area2)
     if type(area1) == 'number' then
         return area1 < Area.size(area2)
@@ -575,9 +575,9 @@ function Area.less_than(area1, area2)
 end
 
 --- Is area1 smaller or equal in size to area2.
---- @param area1 BoundingBox
---- @param area2 BoundingBox
---- @return boolean #is area1 less than or equal to area2 in size
+---@param area1 BoundingBox
+---@param area2 BoundingBox
+---@return boolean #is area1 less than or equal to area2 in size
 -- @local
 function Area.less_than_eq(area1, area2)
     if type(area1) == 'number' then
@@ -590,9 +590,9 @@ function Area.less_than_eq(area1, area2)
 end
 
 --- Does either area overlap/collide with the other area.
---- @param area1 BoundingBox
---- @param area2 BoundingBox
---- @return boolean
+---@param area1 BoundingBox
+---@param area2 BoundingBox
+---@return boolean
 function Area.collides(area1, area2)
     local x1, y1 = Position.unpack(area1.left_top)
     local _, w1, h1 = Area.size(area1)
@@ -603,18 +603,18 @@ function Area.collides(area1, area2)
 end
 
 --- Are the passed positions all located in an area.
---- @param area BoundingBox the search area
---- @param positions Position[] array of Position
---- @return boolean #true if the positions are located in the area
+---@param area BoundingBox the search area
+---@param positions Position[] array of Position
+---@return boolean #true if the positions are located in the area
 function Area.contains_positions(area, positions)
     for _, pos in pairs(positions) do if not Position.inside(pos, area) then return false end end
     return true
 end
 
 --- Are all passed areas completly inside an area.
---- @param area BoundingBox
---- @param areas BoundingBox[] array of BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@param areas BoundingBox[] array of BoundingBox
+---@return boolean
 function Area.contains_areas(area, areas)
     for _, inner in pairs(areas) do
         if not Area.contains_positions(area, { Area.unpack_positions(inner) }) then return false end
@@ -623,9 +623,9 @@ function Area.contains_areas(area, areas)
 end
 
 --- Do all passed areas collide with an area.
---- @param area BoundingBox
---- @param areas BoundingBox[] array of BoundingBox
---- @return boolean
+---@param area BoundingBox
+---@param areas BoundingBox[] array of BoundingBox
+---@return boolean
 function Area.collides_areas(area, areas)
     for _, inner in pairs(areas) do if not Area.collides(area, inner) then return false end end
     return true
@@ -644,11 +644,11 @@ end
 --   -- returns a position object
 -- end
 -- -- Iterates from left_top.x to right_bottom.x then goes down y until right_bottom.y
---- @param area BoundingBox the area to iterate
---- @param as_position boolean? [opt=false] return a position object
---- @param inside boolean? [opt=false] only return values that contain the areas tiles
---- @param step number? [opt=1] size to increment
---- @return function #an iterator
+---@param area BoundingBox the area to iterate
+---@param as_position boolean? [opt=false] return a position object
+---@param inside boolean? [opt=false] only return values that contain the areas tiles
+---@param step number? [opt=1] size to increment
+---@return function #an iterator
 function Area.iterate(area, as_position, inside, step)
     step = step or 1
     local x, y = area.left_top.x, area.left_top.y
@@ -679,11 +679,11 @@ end
 -- print('(' .. x .. ', ' .. y .. ')')
 -- end
 -- prints: (0, 0) (1, 0) (1, 1) (0, 1) (-1, 1) (-1, 0) (-1, -1) (0, -1) (1, -1) (2, -1) (2, 0) (2, 1) (-2, 1) (-2, 0) (-2, -1)
---- @param area BoundingBox the area on which to perform a spiral iteration
---- @param as_position boolean return a position object instead of x, y
---- @return function #the iterator function
---- @return BoundingBox area #The area being iterated over.
---- @return number #A counter or status value, depending on the iteration logic.
+---@param area BoundingBox the area on which to perform a spiral iteration
+---@param as_position boolean return a position object instead of x, y
+---@return function #the iterator function
+---@return BoundingBox area #The area being iterated over.
+---@return number #A counter or status value, depending on the iteration logic.
 function Area.spiral_iterate(area, as_position)
     local rx = area.right_bottom.x - area.left_top.x + 1
     local ry = area.right_bottom.y - area.left_top.y + 1

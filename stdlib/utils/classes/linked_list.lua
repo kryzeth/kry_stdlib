@@ -1,9 +1,9 @@
 error("deprecated. if you need this the make a request.")
---- @diagnostic disable
+---@diagnostic disable
 --- not used internally
 ---------------------------------------------------------------------------------------------------
 --- A double-linked list implementation
---- @class StdLib.LinkedList
+---@class StdLib.LinkedList
 
 local Core = require('__kry_stdlib__/stdlib/core') --[[@as StdLib.Core]]
 local table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]

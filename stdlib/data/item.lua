@@ -2,7 +2,7 @@ local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
 --- Item
---- @class StdLib.Data.Item : StdLib.Data
+---@class StdLib.Data.Item : StdLib.Data
 local Item = {
     __class = 'Item',
     __index = Data,

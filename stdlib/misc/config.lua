@@ -1,11 +1,11 @@
 --- For working with mod configurations.
---- @class StdLib.Misc.Config : StdLib.Core
---- @usage require('__kry_stdlib__/stdlib/config/config')
---- @field new function
---- @field get function
---- @field set function
---- @field delete function
---- @field is_set function
+---@class StdLib.Misc.Config : StdLib.Core
+---@usage require('__kry_stdlib__/stdlib/config/config')
+---@field new function
+---@field get function
+---@field set function
+---@field delete function
+---@field is_set function
 local M = {
     __class = 'Config',
     __index = require('__kry_stdlib__/stdlib/core')
@@ -29,8 +29,8 @@ local testReservedCharacters = function(path)
 end
 
 --- Creates a new Config object to ease the management of a config table.
---- @param config_table table the config table to manage
---- @return StdLib.Misc.Config #the Config object to manage the config table
+---@param config_table table the config table to manage
+---@return StdLib.Misc.Config #the Config object to manage the config table
 --
 -- @usage --[Use a global table for config that persists across game save/loads]
 -- CONFIG = Config.new(global.testtable)
@@ -72,9 +72,9 @@ function M.new(config_table)
     local Config = {}
 
     --- Get a stored config value.
-    --- @param path string the variable to retrieve
-    --- @param default any value to be used if path is nil
-    --- @return any #value at path or nil if not found and no default given
+    ---@param path string the variable to retrieve
+    ---@param default any value to be used if path is nil
+    ---@return any #value at path or nil if not found and no default given
     function Config.get(path, default)
         if type(path) ~= 'string' or path == '' then
             error('path is invalid', 2)
@@ -113,9 +113,9 @@ function M.new(config_table)
     end
 
     --- Set a stored config value.
-    --- @param path string the config path to set
-    --- @param data any? the value to set the path to. If *nil*, it behaves identical to @{delete|Config.delete()}
-    --- @return uint 0 on failure or the number of affected paths on success
+    ---@param path string the config path to set
+    ---@param data any? the value to set the path to. If *nil*, it behaves identical to @{delete|Config.delete()}
+    ---@return uint 0 on failure or the number of affected paths on success
     function Config.set(path, data)
         if type(path) ~= 'string' or path == '' then
             error('path is invalid', 2)
@@ -146,8 +146,8 @@ function M.new(config_table)
     end
 
     --- Delete a stored config value.
-    --- @param path string the config path to delete
-    --- @return uint 0 on failure or the number of affected paths on success
+    ---@param path string the config path to delete
+    ---@return uint 0 on failure or the number of affected paths on success
     function Config.delete(path)
         if type(path) ~= 'string' or path == '' then
             error('path is invalid', 2)
@@ -181,8 +181,8 @@ function M.new(config_table)
     end
 
     --- Test the existence of a stored config value.
-    --- @param path string the config path to test
-    --- @return boolean true if the value exists, false otherwise
+    ---@param path string the config path to test
+    ---@return boolean true if the value exists, false otherwise
     function Config.is_set(path)
         if type(path) ~= 'string' or path == '' then
             error('path is invalid', 2)

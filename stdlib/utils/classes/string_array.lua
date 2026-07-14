@@ -1,19 +1,19 @@
 error("deprecated. Use unique-array.lua")
---- @diagnostic disable
+---@diagnostic disable
 --- not used internally
 --- if needed, we will make it a normal string array later
 ---------------------------------------------------------------------------------------------------
 --- String Array Metatable
 -- For working with string arrays without duplicate values
---- @class StdLib.Classes.StringArray
+---@class StdLib.Classes.StringArray
 local M = {
     __class = 'string-array-class'
 }
 local metatable
 
 --- Does this array contain name.
---- @param name string The string to find.
---- @return boolean string is in array
+---@param name string The string to find.
+---@return boolean string is in array
 function M:has(name)
     local type = type(name)
     if type == 'table' then
@@ -35,8 +35,8 @@ function M:has(name)
 end
 
 --- Add a string to the array if it doesn't exist in the array.
---- @param name string|string[] The string to add.
---- @return self
+---@param name string|string[] The string to add.
+---@return self
 function M:add(name)
     local type = type(name)
     if type == 'table' then
@@ -57,8 +57,8 @@ function M:add(name)
 end
 
 --- Remove the string from the array if it exists.
---- @param name string
---- @return self
+---@param name string
+---@return self
 function M:remove(name)
     local type = type(name)
     if type == 'table' then
@@ -79,8 +79,8 @@ function M:remove(name)
 end
 
 --- Toggles the passed name in the array by adding it if not present or removing it if it is.
---- @param name string
---- @return self
+---@param name string
+---@return self
 function M:toggle(name)
     local type = type(name)
     if type == 'table' then
@@ -102,7 +102,7 @@ function M:toggle(name)
 end
 
 --- Clear the array returning an empty array object
---- @return self
+---@return self
 function M:clear()
     for i = #self, 1, -1 do
         table.remove(self, i)
@@ -111,7 +111,7 @@ function M:clear()
 end
 
 --- Convert the array to a string
---- @return string
+---@return string
 function M:tostring()
     return table.concat(self, ', ')
 end
@@ -119,8 +119,8 @@ end
 
 --[[ WTF?
 --- Concat string-arrays and strings together
---- @param rhs string|StdLib.Classes.StringArray
---- @return StdLib.Classes.StringArray
+---@param rhs string|StdLib.Classes.StringArray
+---@return StdLib.Classes.StringArray
 function M:concat(rhs)
     if getmetatable(self) == metatable then
         return self:add(rhs)
@@ -131,8 +131,8 @@ end
 ]]
 
 --- Concat string-arrays and strings together
---- @param rhs string|StdLib.Classes.StringArray
---- @return StdLib.Classes.StringArray
+---@param rhs string|StdLib.Classes.StringArray
+---@return StdLib.Classes.StringArray
 function M:concat(rhs)
     if type(rhs) == "string" then
         return self:add(rhs)

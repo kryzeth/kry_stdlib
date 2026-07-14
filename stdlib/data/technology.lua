@@ -1,7 +1,7 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
 
 --- Technology
---- @class StdLib.Data.Technology : StdLib.Data
+---@class StdLib.Data.Technology : StdLib.Data
 local Technology = {
     __class = 'Technology',
     __index = Data,

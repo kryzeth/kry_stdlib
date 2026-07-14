@@ -3,9 +3,9 @@ local Data = require('__kry_stdlib__/stdlib/data/data')
 local Item = require('__kry_stdlib__/stdlib/data/item')
 
 --- Entity class
---- @class StdLib.Data.Entity : StdLib.Data
---- @field minable data.MinableProperties (AssemblingMachinePrototype and many others)
---- @field inputs (ItemID)[] (LabPrototype)
+---@class StdLib.Data.Entity : StdLib.Data
+---@field minable data.MinableProperties (AssemblingMachinePrototype and many others)
+---@field inputs (ItemID)[] (LabPrototype)
 local Entity = {
     __class = 'Entity',
     __index = Data,
@@ -77,8 +77,8 @@ function Entity:change_lab_inputs(name, add)
 end
 
 --- Check if entity collision_mask.layers includes the given collision layer
---- @param layer_name string The collision layer to check
---- @return boolean
+---@param layer_name string The collision layer to check
+---@return boolean
 function Entity:has_collision_layer(layer_name)
 	if self:is_valid() then
 		return self.collision_mask
@@ -92,8 +92,8 @@ end
 
 --- Add a crafting category to the list of crafting_categories
 --- Applies only to CraftingMachinePrototype: assembling-machine, rocket-silo, and furnace
---- @param category_name string The crafting category to add
---- @return self
+---@param category_name string The crafting category to add
+---@return self
 function Entity:add_category(category_name)
 	if is_crafting_machine(self) then
 		local Category = require('__kry_stdlib__/stdlib/data/category')
@@ -111,8 +111,8 @@ end
 
 --- Remove a crafting category from the list of crafting_categories
 --- Applies only to CraftingMachinePrototype: assembling-machine, rocket-silo, and furnace
---- @param category_name string The crafting category to remove
---- @return self
+---@param category_name string The crafting category to remove
+---@return self
 function Entity:remove_category(category_name)
 	if is_crafting_machine(self) then
 		for i, category in pairs(self.crafting_categories or {}) do
@@ -128,8 +128,8 @@ end
 
 --- Add multiple recipe categories to the list of crafting_categories
 --- Applies only to CraftingMachinePrototype: assembling-machine, rocket-silo, and furnace
---- @param category_list table The crafting categories to add
---- @return self
+---@param category_list table The crafting categories to add
+---@return self
 function Entity:add_categories(category_list)
 	if is_crafting_machine(self) then
 		for _, category_name in pairs(category_list or {}) do
@@ -142,8 +142,8 @@ end
 
 --- Remove multiple recipe categories from the list of crafting_categories
 --- Applies only to CraftingMachinePrototype: assembling-machine, rocket-silo, and furnace
---- @param category_list table The crafting categories to remove
---- @return self
+---@param category_list table The crafting categories to remove
+---@return self
 function Entity:remove_categories(category_list)
 	if is_crafting_machine(self) then
 		for _, category_name in pairs(category_list or {}) do

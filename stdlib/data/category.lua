@@ -1,5 +1,5 @@
 --- Category
---- @class StdLib.Data.Category : StdLib.Data
+---@class StdLib.Data.Category : StdLib.Data
 -- this placeholder does nothing
 local Category = {
     __class = 'Category',

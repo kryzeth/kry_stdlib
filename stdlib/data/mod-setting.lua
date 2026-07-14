@@ -33,8 +33,8 @@ local function find_setting_prototype(name)
 end
 
 --- Is this a valid setting object?
---- @param type string? [opt] if present, is the setting this type?
---- @return boolean
+---@param type string? [opt] if present, is the setting this type?
+---@return boolean
 function Setting:is_valid(type)
     if type then
         return rawget(self, "valid") == type or false
@@ -45,8 +45,8 @@ end
 
 --- Force a setting value and hide it from the settings UI.
 --- Only works during settings phase, when _raw is a setting prototype.
---- @param value boolean|number|string|table
---- @return self
+---@param value boolean|number|string|table
+---@return self
 function Setting:force_hidden(value)
     if self:is_valid() and self._raw then
         self._raw.forced_value = value
@@ -57,8 +57,8 @@ function Setting:force_hidden(value)
 end
 
 --- Returns a startup setting object.
---- @param name string
---- @return table
+---@param name string
+---@return table
 function Setting:get(name)
     local raw
     local valid

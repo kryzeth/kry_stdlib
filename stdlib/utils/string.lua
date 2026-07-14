@@ -1,7 +1,7 @@
 --- Extends Lua 5.2 string.
---- @class StdLib.Utils.String
+---@class StdLib.Utils.String
 --- --@see string
---- @usage local string = require('__kry_stdlib__/stdlib/utils/string') --[[@as StdLib.Utils.String]]
+---@usage local string = require('__kry_stdlib__/stdlib/utils/string') --[[@as StdLib.Utils.String]]
 local String = {}
 
 String.find = string.find
@@ -28,39 +28,39 @@ local ceil = math.ceil
 local abs = math.abs
 
 --- Returns a copy of the string with any leading or trailing whitespace from the string removed.
---- @param s string the string to remove leading or trailing whitespace from
---- @return string a copy of the string without leading or trailing whitespace
+---@param s string the string to remove leading or trailing whitespace from
+---@return string a copy of the string without leading or trailing whitespace
 function String.trim(s)
     return (s:gsub([[^%s*(.-)%s*$]], '%1'))
 end
 
 --- Tests if a string starts with a given substring.
---- @param s string the string to check for the start substring
---- @param start string the substring to test for
---- @return boolean true if the start substring was found in the string
+---@param s string the string to check for the start substring
+---@param start string the substring to test for
+---@return boolean true if the start substring was found in the string
 function String.starts_with(s, start)
     return s:find(start, 1, true) == 1
 end
 
 --- Tests if a string ends with a given substring.
---- @param s string the string to check for the end substring
---- @param ends string the substring to test for
---- @return boolean true if the end substring was found in the string
+---@param s string the string to check for the end substring
+---@param ends string the substring to test for
+---@return boolean true if the end substring was found in the string
 function String.ends_with(s, ends)
     return #s >= #ends and s:find(ends, #s - #ends + 1, true) and true or false
 end
 
 --- Tests if a string contains a given substring.
---- @param s string the string to check for the substring
---- @param contains string the substring to test for
---- @return boolean true if the substring was found in the string
+---@param s string the string to check for the substring
+---@param contains string the substring to test for
+---@return boolean true if the substring was found in the string
 function String.contains(s, contains)
     return s and s:find(contains) ~= nil
 end
 
 --- Tests whether a string is empty.
---- @param s string the string to test
---- @return boolean true if the string is empty
+---@param s string the string to test
+---@return boolean true if the string is empty
 function String.is_empty(s)
     return s == nil or s == ''
 end
@@ -197,11 +197,11 @@ end
 --- Splits a string into an array.
 -- Note: Empty split substrings are not included in the resulting table.
 -- <p>For example, `string.split("foo.bar...", ".", false)` results in the table `{"foo", "bar"}`.
---- @param s string the string to split
---- @param sep string? [opt="."] the separator to use.
---- @param pattern boolean? [opt=false] whether to interpret the separator as a lua pattern or plaintext for the string split
---- @param func function? [opt] pass each split string through this function.
---- @return string[] #an array of strings
+---@param s string the string to split
+---@param sep string? [opt="."] the separator to use.
+---@param pattern boolean? [opt=false] whether to interpret the separator as a lua pattern or plaintext for the string split
+---@param func function? [opt] pass each split string through this function.
+---@return string[] #an array of strings
 function String.split(s, sep, pattern, func)
     sep = sep or '.'
     sep = sep ~= '' and sep or '.'
@@ -223,9 +223,9 @@ function String.split(s, sep, pattern, func)
 end
 
 --- Return the ordinal suffix for a number.
---- @param n number
---- @param prepend_number boolean if the passed number should be pre-pended
---- @return string #the ordinal suffix
+---@param n number
+---@param prepend_number boolean if the passed number should be pre-pended
+---@return string #the ordinal suffix
 function String.ordinal_suffix(n, prepend_number)
     if tonumber(n) then
         n = abs(n) % 100
@@ -267,8 +267,8 @@ local exponent_multipliers = {
 }
 
 --- Convert a metric string prefix to a number value.
---- @param str string
---- @return float
+---@param str string
+---@return float
 function String.exponent_number(str)
     if type(str) == 'string' then
         local value, exp = str:match('([%-+]?[0-9]*%.?[0-9]+)([yzafpnumcdhkMGTPEZY]?)') ---@diagnostic disable-line: spell-check

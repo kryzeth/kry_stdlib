@@ -2,7 +2,7 @@ local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 local Space = require('__kry_stdlib__/stdlib/data/space')
 
 --- Planet (mainly just a placeholder for Space, to automatically wrap around planets)
---- @class StdLib.Data.Planet : StdLib.Data
+---@class StdLib.Data.Planet : StdLib.Data
 local Planet = {
     __class = 'Planet',
 }

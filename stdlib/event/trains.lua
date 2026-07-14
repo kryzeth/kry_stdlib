@@ -2,7 +2,7 @@
 -- When this module is loaded into a mod, it automatically registers a number of new events in order to keep track of
 -- the trains as their locomotives and wagons are moved around.
 -- <p>To handle the events, you should use the @{Event} module.
---- @class StdLib.Event.Trains
+---@class StdLib.Event.Trains
 local Trains = {
     __class = 'Trains',
     __index = require('__kry_stdlib__/stdlib/core')
@@ -30,7 +30,7 @@ Trains.on_train_id_changed = Event.generate_event_name()
 -- If ***criteria.surface*** is not supplied, this function searches through all existing surfaces.
 -- If ***criteria.force*** is not supplied, this function searches through all existing forces.
 -- If ***criteria.state*** is not supplied, this function gets trains in any @{defines.train_state|state}.
---- @param criteria StdLib.Event.Trains.criteria? a table used to search for trains
+---@param criteria StdLib.Event.Trains.criteria? a table used to search for trains
 -- @return (<span class="types">{@{train_details},...}</span>) an array of train IDs and LuaTrain instances
 -- @usage
 -- Trains.find_filtered({ surface = "nauvis", state = defines.train_state.wait_station })
@@ -72,19 +72,19 @@ end
 
 ---
 -- This table should be passed into @{find_filtered} to find trains that match the criteria.
---- @class StdLib.Event.Trains.criteria : TrainFilter
---- @field state nil|defines.train_state  [opt] the state of the trains to search
+---@class StdLib.Event.Trains.criteria : TrainFilter
+---@field state nil|defines.train_state  [opt] the state of the trains to search
 
 
 --- {find_filtered} returns an array with one or more of ***this*** table based on the @{criteria|search criteria}.
---- @class StdLib.Event.Trains.train_details
---- @field train LuaTrain an instance of the train
---- @field id uint the ID of the train
+---@class StdLib.Event.Trains.train_details
+---@field train LuaTrain an instance of the train
+---@field id uint the ID of the train
 
 
 --- Find the ID of a LuaTrain instance.
---- @param train LuaTrain
---- @return uint? #the ID of the train
+---@param train LuaTrain
+---@return uint? #the ID of the train
 function Trains.get_train_id(train)
     local loco = Trains.get_main_locomotive(train)
     return loco and loco.unit_number
@@ -122,8 +122,8 @@ function Trains._on_locomotive_changed()
 end
 
 --- Get the main locomotive of a train.
---- @param train LuaTrain
---- @return LuaEntity? #the main locomotive
+---@param train LuaTrain
+---@return LuaEntity? #the main locomotive
 function Trains.get_main_locomotive(train)
     if train and train.valid and train.locomotives and (#train.locomotives.front_movers > 0 or #train.locomotives.back_movers > 0) then
         return train.locomotives.front_movers and train.locomotives.front_movers[1] or train.locomotives.back_movers[1]
@@ -131,7 +131,7 @@ function Trains.get_main_locomotive(train)
 end
 
 --- Creates an entity from a train that is compatible with the @{Entity.Entity} module.
---- @param train LuaTrain
+---@param train LuaTrain
 -- @return (<span class="types">@{train_entity}</span>)
 function Trains.to_entity(train)
     local name = 'train-' .. Trains.get_train_id(train)
@@ -155,9 +155,9 @@ end
 -- This is a helper around @{Entity.Entity.set_data}.
 -- <p>The user data will be stored in the storage object and it will persist between loads.
 --> The user data will be removed from a train when the train becomes invalid.
---- @param train LuaTrain the train to set the user data for
---- @param data any? the user data to set, or nil to delete the user data associated with the train
---- @return any? #the previous user data or nil if the train had no previous user data
+---@param train LuaTrain the train to set the user data for
+---@param data any? the user data to set, or nil to delete the user data associated with the train
+---@return any? #the previous user data or nil if the train had no previous user data
 function Trains.set_data(train, data)
     return Entity.set_data(Trains.to_entity(train), data)
 end
@@ -166,8 +166,8 @@ end
 -- This is a helper around @{Entity.Entity.get_data}.
 -- <p>The user data is stored in the storage object and it persists between loads.
 --> The user data will be removed from a train when the train becomes invalid.
---- @param train LuaTrain the train to look up user data for
---- @return any? #the user data, or nil if no user data exists for the train
+---@param train LuaTrain the train to look up user data for
+---@return any? #the user data, or nil if no user data exists for the train
 function Trains.get_data(train)
     return Entity.get_data(Trains.to_entity(train))
 end
@@ -191,7 +191,7 @@ function Trains.on_train_created(event)
 end
 
 --- This needs to be called to register events for this module
---- @return StdLib.Event.Trains
+---@return StdLib.Event.Trains
 function Trains.register_events()
     -- When a locomotive is removed ...
     local train_remove_events = { defines.events.on_entity_died, defines.events.on_pre_player_mined_item, defines.events.on_robot_pre_mined }

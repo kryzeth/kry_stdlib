@@ -2,7 +2,7 @@ local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
 --- EquipmentGrid
---- @class StdLib.Data.EquipmentGrid : StdLib.Data
+---@class StdLib.Data.EquipmentGrid : StdLib.Data
 local EquipmentGrid = {
     __class = 'EquipmentGrid',
     __index = Data,

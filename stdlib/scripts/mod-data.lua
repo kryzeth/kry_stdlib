@@ -6,8 +6,8 @@ local ModData = {}
 
 --- Safely returns the data table from prototypes.mod_data[name].
 --- Returns an empty table if the mod-data table does not exist or has no data.
---- @param name string
---- @return table
+---@param name string
+---@return table
 function ModData.get(name)
 	assert(type(name) == "string", "mod-data name must be a string")
 

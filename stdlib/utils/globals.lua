@@ -65,9 +65,9 @@ require('__kry_stdlib__/stdlib/utils/defines/lightcolor')
 require('__kry_stdlib__/stdlib/utils/defines/time')
 
 --- Require a file that may not exist
---- @param module string path to the module
---- @param suppress_all boolean suppress all errors, not just file_not_found
---- @return any
+---@param module string path to the module
+---@param suppress_all boolean suppress all errors, not just file_not_found
+---@return any
 local function prequire(module, suppress_all)
     local ok, err = pcall(require--[[@as fun(string)]], module)
     if ok then
@@ -79,8 +79,8 @@ end
 rawset(_ENV, 'prequire', prequire)
 
 --- Temporarily removes __tostring handlers and calls tostring
---- @param t any object to call rawtostring on
---- @return string
+---@param t any object to call rawtostring on
+---@return string
 local function rawtostring(t)
     local m = getmetatable(t)
     if m then
@@ -96,10 +96,10 @@ end
 rawset(_ENV, 'rawtostring', rawtostring)
 
 --- Returns t if the expression is true. f if false
---- @param exp any The expression to evaluate
---- @param t any the true return
---- @param f any the false return
---- @return boolean
+---@param exp any The expression to evaluate
+---@param t any the true return
+---@param f any the false return
+---@return boolean
 local function inline_if(exp, t, f)
     if exp then
         return t
@@ -149,7 +149,7 @@ end
 
 --- load the stdlib into globals, by default it loads everything into an ALLCAPS name.
 -- Alternatively you can pass a dictionary of `[global names] -> [require path]`.
---- @param files table [opt]
+---@param files table [opt]
 -- @usage
 -- STDLIB.create_stdlib_globals()
 function STDLIB.create_stdlib_globals(files)

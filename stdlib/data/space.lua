@@ -3,7 +3,7 @@ local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
 --- Space, the final frontier. Intended for planet, space-connection, and space-location
---- @class Data.Space : StdLib.Data
+---@class Data.Space : StdLib.Data
 local Space = {
     __class = 'Space',
     __index = Data,

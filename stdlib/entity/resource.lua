@@ -1,6 +1,6 @@
 --- Resource utilities.
---- @class StdLib.Entity.Resource
---- @usage local Resource = require('__kry_stdlib__/stdlib/entity/resource')
+---@class StdLib.Entity.Resource
+---@usage local Resource = require('__kry_stdlib__/stdlib/entity/resource')
 local Resource = {
 	__class = 'Resource',
     __index = require('__kry_stdlib__/stdlib/core')
@@ -18,9 +18,9 @@ local table = require('__kry_stdlib__/stdlib/utils/table')
 
 --- Gets all resource entities at the specified position and surface.
 -- Adapted from *YARM/resmon.lua &rarr; find\_resource\_at*
---- @param surface string|LuaSurface the surface to look up
---- @param position Position the position to check
---- @return LuaEntity[] #an array of resource entities
+---@param surface string|LuaSurface the surface to look up
+---@param position Position the position to check
+---@return LuaEntity[] #an array of resource entities
 function Resource.get_resources_at(surface, position)
     Is.Assert(surface, 'missing surface')
     Is.Assert(position, 'missing position')
@@ -41,9 +41,9 @@ end
 -- <p>For now, this function gets just the ore patches, since problems arise when a single resource entity spans multiple tiles.
 --> This implementation is unstable; if a resource entity reference changes during the search,
 -- *both the old and the new version* of the entity might be included.
---- @param surface LuaSurface the surface to look up
---- @param position Position the position to check
---- @return any ({@{nil}} or {[@{string} &lt;resource-type&gt;] = {@{LuaEntity},...},...})
+---@param surface LuaSurface the surface to look up
+---@param position Position the position to check
+---@return any ({@{nil}} or {[@{string} &lt;resource-type&gt;] = {@{LuaEntity},...},...})
 --- a map of resource types to resource entities or empty array if they don't exist
 function Resource.get_resource_patches_at(surface, position)
     Is.Assert(surface, 'missing surface')
@@ -66,10 +66,10 @@ end
 -- <p>For now, this function gets just the ore patches, since problems arise when a single resource entity spans multiple tiles.
 --> This implementation is unstable; if a resource entity reference changes during the search,
 -- *both the old and the new version* of the entity might be included.
---- @param surface LuaSurface the surface to look up
---- @param position Position the position to check
---- @param type string the resource type (example: "iron-ore")
---- @return LuaEntity[]? #an array containing all resources in the resource patch, or an empty array if there are no resources there
+---@param surface LuaSurface the surface to look up
+---@param position Position the position to check
+---@param type string the resource type (example: "iron-ore")
+---@return LuaEntity[]? #an array containing all resources in the resource patch, or an empty array if there are no resources there
 function Resource.get_resource_patch_at(surface, position, type)
     Is.Assert(surface, 'missing surface')
     Is.Assert(position, 'missing position')
@@ -135,8 +135,8 @@ end
 
 --- Given an array of resource entities, get an array containing their names.
 -- Every element within the new array is unique and is the name of a resource entity.
---- @param resources LuaEntity[] an array of resource entities
---- @return string[] #a new array with the names of the resources
+---@param resources LuaEntity[] an array of resource entities
+---@return string[] #a new array with the names of the resources
 function Resource.get_resource_types(resources)
     local result = {}
     if not resources then return result end
@@ -149,9 +149,9 @@ function Resource.get_resource_types(resources)
 end
 
 --- Given an array of resource entities, return the ones that have the given resource names.
---- @param resources LuaEntity[] an array of resource entities
---- @param resource_names string[] the names of the resource entities
---- @return LuaEntity[] #a new array containing the entities matching the given resource names
+---@param resources LuaEntity[] an array of resource entities
+---@param resource_names string[] the names of the resource entities
+---@return LuaEntity[] #a new array containing the entities matching the given resource names
 function Resource.filter_resources(resources, resource_names)
     Is.Assert(resources, 'missing resource entities list')
     if not resource_names or #resource_names == 0 then return resources end
@@ -173,9 +173,9 @@ function Resource.filter_resources(resources, resource_names)
 end
 
 --- Given a resource patch, return its area.
---- @see Resource.get_resource_patch_at
---- @param resource_patch LuaEntity[] the resource patch
---- @return BoundingBox #the area of the resource patch
+---@see Resource.get_resource_patch_at
+---@param resource_patch LuaEntity[] the resource patch
+---@return BoundingBox #the area of the resource patch
 function Resource.get_resource_patch_bounds(resource_patch)
     Is.Assert(resource_patch, 'missing resource patch')
     local min_x = math.huge

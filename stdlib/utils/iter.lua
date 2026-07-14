@@ -1,5 +1,5 @@
 --- Iterator library.
---- @class StdLib.Utils.Iter
+---@class StdLib.Utils.Iter
 local Iter = {}
 
 local pairs = pairs

@@ -1,6 +1,6 @@
 --- Functions for working with orientations.
---- @class StdLib.Area.Orientation : StdLib.Core
---- @usage local Orientation = require('__kry_stdlib__/stdlib/area/orientation')
+---@class StdLib.Area.Orientation : StdLib.Core
+---@usage local Orientation = require('__kry_stdlib__/stdlib/area/orientation')
 local Orientation = {
     __class = 'Orientation',
     __index = require('__kry_stdlib__/stdlib/core')
@@ -36,9 +36,9 @@ Orientation.northnorthwest = defines.direction.northnorthwest / 16
 local floor = math.floor
 
 --- Returns a 4way or 8way direction from an orientation.
---- @param orientation float
---- @param eight_way boolean? [opt=false] true to get the next direction in 8-way; else 4-way
---- @return defines.direction
+---@param orientation float
+---@param eight_way boolean? [opt=false] true to get the next direction in 8-way; else 4-way
+---@return defines.direction
 function Orientation.to_direction(orientation, eight_way)
     local f = eight_way and 16 or 8
     local mod = eight_way and 2 or 4
@@ -46,16 +46,16 @@ function Orientation.to_direction(orientation, eight_way)
 end
 
 --- Returns the opposite orientation.
---- @param orientation float
---- @return float the opposite orientation
+---@param orientation float
+---@return float the opposite orientation
 function Orientation.opposite(orientation)
     return (orientation + 0.5) % 1
 end
 
 --- Add two orientations together.
---- @param orientation1 float
---- @param orientation2 float
---- @return float the orientations added together
+---@param orientation1 float
+---@param orientation2 float
+---@return float the orientations added together
 function Orientation.add(orientation1, orientation2)
     return (orientation1 + orientation2) % 1
 end

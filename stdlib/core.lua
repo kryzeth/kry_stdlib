@@ -3,8 +3,8 @@ require('__kry_stdlib__/stdlib/utils/globals')
 
 --- The Core module loads some helper functions and globals useful in all stages
 --- of a mods life cycle. All modules have an __index method into core.
---- @class StdLib.Core
---- @usage local Core = require('__kry_stdlib__/stdlib/core')
+---@class StdLib.Core
+---@usage local Core = require('__kry_stdlib__/stdlib/core')
 local Core = {
     _VERSION = '1.0.0',
     _DESCRIPTION = 'Factorio Lua Standard Library Project',
@@ -37,8 +37,8 @@ Core.Unique_Array = require('__kry_stdlib__/stdlib/utils/classes/unique_array')
 Core.String_Array = Core.Unique_Array
 
 --- Prints and logs the msg
---- @param msg string
---- @return boolean true if the message was printed to someone
+---@param msg string
+---@return boolean true if the message was printed to someone
 function Core.log_and_print(msg)
     if game and #game.connected_players > 0 then
         log(script.mod_name .. ':' .. msg)

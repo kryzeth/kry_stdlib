@@ -10,8 +10,8 @@
 -- This module does not have many of the multiplayer protections that `script.on_event` does.
 -- <br>Due to this, great care should be taken when registering events conditionally.
 -- </blockquote>
---- @class StdLib.Event : StdLib.Core
---- @usage local Event = require('__kry_stdlib__/stdlib/event/event')
+---@class StdLib.Event : StdLib.Core
+---@usage local Event = require('__kry_stdlib__/stdlib/event/event')
 local Event = {
     __class = 'Event',
     registry = {}, -- Holds registered events
@@ -138,12 +138,12 @@ end
 -- Event.register(-120, function() game.print('Every 120 ticks') end
 -- -- Function call chaining
 -- Event.register(event1, handler1).register(event2, handler2)
---- @param event_id defines.events|int|string|(defines.events|int|string)[]
---- @param handler function the function to call when the given events are triggered
---- @param filter function? [opt=nil] a function whose return determines if the handler is executed. event and pattern are passed into this
---- @param pattern any? [opt=nil] an invariant that can be used in the filter function, passed as the second parameter to your filter
---- @param options table? [opt=nil] a table of options that take precedence over the module options.
---- @return StdLib.Event #Event module object allowing for call chaining
+---@param event_id defines.events|int|string|(defines.events|int|string)[]
+---@param handler function the function to call when the given events are triggered
+---@param filter function? [opt=nil] a function whose return determines if the handler is executed. event and pattern are passed into this
+---@param pattern any? [opt=nil] an invariant that can be used in the filter function, passed as the second parameter to your filter
+---@param options table? [opt=nil] a table of options that take precedence over the module options.
+---@return StdLib.Event #Event module object allowing for call chaining
 function Event.register(event_id, handler, filter, pattern, options)
     assert(event_id, 'missing event_id argument')
     assert(Type.Function(handler), 'handler function is missing, use Event.remove to un register events')
@@ -215,11 +215,11 @@ end
 -- @{LuaBootstrap.generate_event_name|script.generate_event_name} which is in <span class="types">@{int}</span>,
 -- and can be a custom input name which is in <span class="types">@{string}</span>.
 -- <p>The `event_id` parameter takes in either a single, multiple, or mixture of @{defines.events}, @{int}, and @{string}.
---- @param event_id defines.events|integer|string|table<defines.events|integer|string>
---- @param handler? function [opt] the handler to remove, if not present remove all registered handlers for the event_id
---- @param filter? function [opt]
---- @param pattern any
---- @return StdLib.Event #Event module object allowing for call chaining
+---@param event_id defines.events|integer|string|table<defines.events|integer|string>
+---@param handler? function [opt] the handler to remove, if not present remove all registered handlers for the event_id
+---@param filter? function [opt]
+---@param pattern any
+---@return StdLib.Event #Event module object allowing for call chaining
 function Event.remove(event_id, handler, filter, pattern)
     assert(event_id, 'missing event_id argument')
 
@@ -490,8 +490,8 @@ function Event.register_surface(bool)
 end
 
 --- Retrieve or Generate an event_name and store it in Event.custom_events
---- @param event_name string the custom name for your event.
---- @return int the id associated with the event.
+---@param event_name string the custom name for your event.
+---@return int the id associated with the event.
 -- @usage
 -- Event.register(Event.generate_event_name("my_custom_event"), handler)
 function Event.generate_event_name(event_name)

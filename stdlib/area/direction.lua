@@ -1,6 +1,6 @@
 --- Functions for working with directions and orientations.
---- @class StdLib.Area.Direction : StdLib.Core
---- @usage local Direction = require('__kry_stdlib__/stdlib/area/direction')
+---@class StdLib.Area.Direction : StdLib.Core
+---@usage local Direction = require('__kry_stdlib__/stdlib/area/direction')
 --- --@see defines.direction
 local Direction = {
     __class = 'Direction',
@@ -35,41 +35,41 @@ Direction.westnorthwest=defines.direction.westnorthwest
 Direction.northnorthwest=defines.direction.northnorthwest
 
 --- Returns the opposite direction
---- @param direction defines.direction the direction
---- @return defines.direction #the opposite direction
+---@param direction defines.direction the direction
+---@return defines.direction #the opposite direction
 function Direction.opposite(direction)
     return (direction + 8) % 16 -- 2.0
 end
 
 --- Returns the next direction.
 --> For entities that only support two directions, see @{opposite}.
---- @param direction defines.direction the starting direction
---- @param eight_way boolean? [opt=false] true to get the next direction in 8-way (note: not many prototypes support 8-way)
---- @return defines.direction #the next direction
+---@param direction defines.direction the starting direction
+---@param eight_way boolean? [opt=false] true to get the next direction in 8-way (note: not many prototypes support 8-way)
+---@return defines.direction #the next direction
 function Direction.next(direction, eight_way)
     return (direction + (eight_way and 2 or 4)) % 16 --2.0
 end
 
 --- Returns the previous direction.
 --> For entities that only support two directions, see @{opposite}.
---- @param direction defines.direction the starting direction
---- @param eight_way boolean? [opt=false] true to get the previous direction in 8-way (note: not many prototypes support 8-way)
---- @return defines.direction the next direction
+---@param direction defines.direction the starting direction
+---@param eight_way boolean? [opt=false] true to get the previous direction in 8-way (note: not many prototypes support 8-way)
+---@return defines.direction the next direction
 function Direction.previous(direction, eight_way)
     return (direction + (eight_way and -2 or -4)) % 16 --2.0
 end
 
 --- Returns an orientation from a direction.
---- @param direction defines.direction
---- @return float
+---@param direction defines.direction
+---@return float
 function Direction.to_orientation(direction)
     return direction / 16 --2.0
 end
 
 --- Returns a vector from a direction.
---- @param direction defines.direction
---- @param distance number? [opt = 1]
---- @return Position
+---@param direction defines.direction
+---@param distance number? [opt = 1]
+---@return Position
 function Direction.to_vector(direction, distance)
     distance = distance or 1
     local x, y = 0, 0
@@ -107,9 +107,9 @@ end
 
 --NEW: calc real veactor
 --- Returns a vector from a direction.
---- @param direction defines.direction
---- @param distance number? [opt = 1]
---- @return Position
+---@param direction defines.direction
+---@param distance number? [opt = 1]
+---@return Position
 function Direction.to_vector2(direction, distance, round)
     distance = distance or 1
     local x, y = 0, 0

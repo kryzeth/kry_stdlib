@@ -1,7 +1,7 @@
 local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 
 --- Fluid
---- @class StdLib.Data.Fluid : StdLib.Data
+---@class StdLib.Data.Fluid : StdLib.Data
 local Fluid = {
     __class = 'Fluid',
     __index = Data,

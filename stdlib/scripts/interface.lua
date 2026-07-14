@@ -24,7 +24,7 @@ end
 interface['write_global'] = function()
     helpers.remove_path(script.mod_name)
 
-    helpers.write_file(script.mod_name .. '/global.lua', write(global, 'global'))
+    helpers.write_file(script.mod_name .. '/storage.lua', write(storage, 'storage'))
     helpers.write_file(script.mod_name .. '/package.lua', write(package.loaded, 'package', nil, 1))
     helpers.write_file(script.mod_name .. '/interface.lua', write(remote.interfaces[script.mod_name] or {}, 'interface'))
     helpers.write_file(script.mod_name .. '/_G.lua', write(_G, 'globals', nil, 1))

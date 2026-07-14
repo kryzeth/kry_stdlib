@@ -1,5 +1,5 @@
 --- Data Utilities
---- @class StdLib.Data.Util : StdLib.Core
+---@class StdLib.Data.Util : StdLib.Core
 local Util = {
     __class = 'Util',
     __index = require('__kry_stdlib__/stdlib/core')
@@ -29,10 +29,10 @@ function Util.extend_style_by_name(name, style)
 end
 
 --- Quickly duplicate an existing prototype into a new one.
---- @param data_type string The type of the object to duplicate
---- @param orig_name string The name of the object to duplicate
---- @param new_name string The new name to use.
---- @param mining_result nil|string|boolean  [opt] If true set mining_result to new_name, if truthy set mining_result to value
+---@param data_type string The type of the object to duplicate
+---@param orig_name string The name of the object to duplicate
+---@param new_name string The new name to use.
+---@param mining_result nil|string|boolean  [opt] If true set mining_result to new_name, if truthy set mining_result to value
 function Util.duplicate(data_type, orig_name, new_name, mining_result)
     mining_result = type(mining_result) == 'boolean' and new_name or mining_result
     if data.raw[data_type] and data.raw[data_type][orig_name] then
@@ -61,7 +61,7 @@ end
 
 -- load the data portion of stdlib into globals, by default it loads everything into an ALLCAPS name.
 -- Alternatively you can pass a dictionary of `[global names] -> [require path]`.
---- @param files table? [opt]
+---@param files table? [opt]
 -- @usage
 -- require('__kry_stdlib__/stdlib/data/data).util.create_data_globals()
 function Util.create_data_globals(files)

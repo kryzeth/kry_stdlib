@@ -1,7 +1,7 @@
 local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 
 --- ItemGroup
---- @class StdLib.Data.ItemGroup : StdLib.Data
+---@class StdLib.Data.ItemGroup : StdLib.Data
 local ItemGroup = {
     __class = 'ItemGroup',
     __index = Data,
@@ -16,7 +16,7 @@ setmetatable(ItemGroup, ItemGroup)
 --- item subgroup contributes zero rows if it contains no visible entries.
 --- Each subgroup contributes one row for 1-10 visible entries.
 --- Each subgroup contributes two rows for 11-20 visible entries, etc.
---- @return integer? rows
+---@return integer? rows
 function ItemGroup:count_rows()
     if self:is_valid('item-group') then
         local ItemSubgroup = require('__kry_stdlib__/stdlib/data/item-subgroup')

@@ -1,5 +1,5 @@
 --- Migration helper functions
---- @class StdLib.Misc.Migrate : StdLib.Core
+---@class StdLib.Misc.Migrate : StdLib.Core
 local Migrate = {
     __class = 'Migrate',
     __index = require('__kry_stdlib__/stdlib/core')
@@ -9,7 +9,7 @@ setmetatable(Migrate, Migrate)
 local Is = require('__kry_stdlib__/stdlib/utils/is')
 
 --- Migrate a dictionary of recipe -> tech names
---- @param dictionary {[string]: string} dictionary of recipe -> tech names
+---@param dictionary {[string]: string} dictionary of recipe -> tech names
 function Migrate.Recipes(dictionary)
     Is.Assert.Table(dictionary, 'dictionary of recipes->technology not found')
     for _, force in pairs(game.forces) do

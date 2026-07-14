@@ -1,9 +1,9 @@
 -- For working with chunks.
 
 --- A chunk represents a 32 tile<sup>2</sup> on a surface in Factorio.
---- @class StdLib.Area.Chunk : StdLib.Core
---- @usage local Chunk = require('__kry_stdlib__/stdlib/area/chunk')
---- @see ChunkPosition
+---@class StdLib.Area.Chunk : StdLib.Core
+---@usage local Chunk = require('__kry_stdlib__/stdlib/area/chunk')
+---@see ChunkPosition
 local Chunk = {
     __class = 'Chunk',
     __index = require('__kry_stdlib__/stdlib/core')
@@ -41,8 +41,8 @@ local function load_area(area)
 end
 
 --- Gets the area of a chunk from the specified chunk position.
---- @param pos ChunkPosition the chunk position
---- @return BoundingBox the chunk's area
+---@param pos ChunkPosition the chunk position
+---@return BoundingBox the chunk's area
 function Chunk.to_area(pos)
     local left_top = Chunk.to_position(pos)
     local right_bottom = Position.add(left_top, 32, 32)
@@ -52,10 +52,10 @@ end
 
 --- Gets the user data that is associated with a chunk.
 -- The user data is stored in the global object and it persists between loads.
---- @param surface LuaSurface the surface on which the user data is looked up
---- @param chunk_pos ChunkPosition the chunk position on which the user data is looked up
---- @param default_value any the user data to set for the chunk and returned if the chunk had no user data
---- @return any? #the user data **OR** *nil* if it does not exist for the chunk and if no default_value was set
+---@param surface LuaSurface the surface on which the user data is looked up
+---@param chunk_pos ChunkPosition the chunk position on which the user data is looked up
+---@param default_value any the user data to set for the chunk and returned if the chunk had no user data
+---@return any? #the user data **OR** *nil* if it does not exist for the chunk and if no default_value was set
 function Chunk.get_data(surface, chunk_pos, default_value)
     local surface = Game.get_surface(surface)
     assert(surface, 'invalid surface')
@@ -66,10 +66,10 @@ Chunk.get = Chunk.get_data
 
 --- Associates the user data to a chunk.
 -- The user data will be stored in the global object and it will persist between loads.
---- @param surface LuaSurface the surface on which the user data will reside
---- @param chunk_pos ChunkPosition the chunk position to associate with the user data
---- @param value any? the user data to set **OR** *nil* to erase the existing user data for the chunk
---- @return any? #the previous user data associated with the chunk **OR** *nil* if the chunk had no previous user data
+---@param surface LuaSurface the surface on which the user data will reside
+---@param chunk_pos ChunkPosition the chunk position to associate with the user data
+---@param value any? the user data to set **OR** *nil* to erase the existing user data for the chunk
+---@return any? #the previous user data associated with the chunk **OR** *nil* if the chunk had no previous user data
 function Chunk.set_data(surface, chunk_pos, value)
     local surface = Game.get_surface(surface)
     assert(surface, 'invalid surface')
