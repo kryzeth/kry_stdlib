@@ -1,8 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.5
-Date: July 13, 2026
+Date: July 14, 2026
   Info:
-    - Folded in several minor bugfixes from goakiller900's stdlib2 continuation project
+    - Folded in several bugfixes from goakiller900's stdlib2 continuation project
+    - Updated github repo to reflect latest version from mod portal
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.4
 Date: July 11, 2026
