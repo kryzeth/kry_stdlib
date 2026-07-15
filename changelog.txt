@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.6
+Date: July 15, 2026
+  Bugfixes:
+    - Fixed several runtime compatibility issues and helper function bugs affecting mods using stdlib on Factorio 2.1.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.5
 Date: July 14, 2026
   Info:
@@ -551,11 +556,11 @@ Date: 12.6.2016
     - Added options to Logger.new, adds option to modify the file extension and alter the timestamp format
     - Added Chunk.get to calculate the chunk coordinates for a given tile position
     - Added Chunk.get_data, retrieves mod data stored on a chunk position
-    - Added Chunk.set_data sets mod data on a chunk position
+    - Added Chunk.set_data sets persistent mod data on a chunk position
     - Added Tile.from_position, calculates tile coordinates from a position
     - Added Tile.to_area, returns the area that a single tile occupies
     - Added Tile.get_data, retrieves mod data stored on a tile position
-    - Added Tile.set_data, sets mod data on a tile position
+    - Added Tile.set_data, sets or removes persistent mod data associated with a tile position
     - Added Area.spiral_iterate, is an alternate iterator (compared to Area.iterate) that iterates the Area in an inside-out spiral fashion
     - Added Area.center, returns the center position of an Area
     - Added string.contains, tests if a string contains a substring
@@ -580,7 +585,7 @@ Date: 9.5.2016
     - Added table.first, returns the first item in the array
     - Added table.last, returns the last item in the array
     - Added table.map, returns a copy of the table transformed by the function
-    - Added table.merge, merges table b into table a, overwriting any duplicate entries in table a with values in table b
+    - Added table.merge, merges table b into table a, overwriting any duplicate entries in table a with values from table b
     - Improved Event Registry
     - Added access to the event handler reference (the function handling the event) in event._handler
     - Added Event.remove, allows events to be de-registered
