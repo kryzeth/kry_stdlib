@@ -8,7 +8,7 @@ describe(
         before_each(
             function()
                 require('spec/setup/data').reload()
-                Technology = require('__stdlib2-continued__/stdlib/data/technology')
+                Technology = require('__kry_stdlib__/stdlib/data/technology')
             end
         )
 

@@ -1,6 +1,6 @@
 require('spec/setup/busted')()
 
-local math = require('__stdlib2-continued__/stdlib/utils/math')
+local math = require('__kry_stdlib__/stdlib/utils/math')
 
 describe('Math', function()
     it('should clamp', function()
