@@ -7,8 +7,12 @@ local Fluid = {
     __index = Data,
 }
 
+---@param fluid string Fluid prototype name
+---@return StdLib.Data.Fluid fluid
 function Fluid:__call(fluid)
-    return self:get(fluid, 'fluid')
+    local new = self:get(fluid, 'fluid')
+    ---@cast new StdLib.Data.Fluid
+    return new
 end
 setmetatable(Fluid, Fluid)
 

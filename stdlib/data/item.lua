@@ -1,7 +1,7 @@
 local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
---- Item
+--- Wrapper for Factorio item-like prototypes.
 ---@class StdLib.Data.Item : StdLib.Data
 local Item = {
     __class = 'Item',
@@ -10,6 +10,10 @@ local Item = {
 }
 setmetatable(Item, Item)
 
+--- Converts a lab name or array of lab names to an array.
+--- Returns every lab prototype name when `params` is omitted.
+---@param params? string|string[] Lab name or names
+---@return string[] lab_names
 local function make_table(params)
     if not params then
         return Table.keys(data.raw.lab)
@@ -18,6 +22,10 @@ local function make_table(params)
     end
 end
 
+--- Adds or removes an item from the inputs of selected labs.
+---@param name string Item prototype name
+---@param lab_names? string|string[] Lab name or names; all labs when omitted
+---@param add boolean Add the item when true; remove it otherwise
 local function change_inputs(name, lab_names, add)
     lab_names = make_table(lab_names)
     local Entity = require('__kry_stdlib__/stdlib/data/entity')
@@ -26,6 +34,9 @@ local function change_inputs(name, lab_names, add)
     end
 end
 
+--- Adds this item to the inputs of selected labs.
+---@param lab_names? string|string[] Lab name or names; all labs when omitted
+---@return self
 function Item:add_to_labs(lab_names)
     if self:is_valid() then
         change_inputs(self.name, lab_names, true)
@@ -33,6 +44,9 @@ function Item:add_to_labs(lab_names)
     return self
 end
 
+--- Removes this item from the inputs of selected labs.
+---@param lab_names? string|string[] Lab name or names; all labs when omitted
+---@return self
 function Item:remove_from_labs(lab_names)
     if self:is_valid() then
         change_inputs(self.name, lab_names, false)

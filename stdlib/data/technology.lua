@@ -1,17 +1,29 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
 
---- Technology
+--- Wrapper for Factorio technology prototypes.
 ---@class StdLib.Data.Technology : StdLib.Data
+---@field effects? table[] Technology effects
+---@field prerequisites? string[] Prerequisite technology names
+---@field unit? table Technology research-unit properties
 local Technology = {
     __class = 'Technology',
     __index = Data,
 }
 
+--- Looks up and wraps a technology by name.
+---@param tech string Technology prototype name
+---@return StdLib.Data.Technology technology
 function Technology:__call(tech)
-    return self:get(tech, 'technology')
+    local new = self:get(tech, 'technology')
+    ---@cast new StdLib.Data.Technology
+    return new
 end
 setmetatable(Technology, Technology)
 
+--- Adds an effect to a technology or adds a recipe unlock to a technology.
+---@param effect string|table Effect target name, wrapper, or list of technology names
+---@param unlock_type? string Technology effect type; defaults to `"unlock-recipe"`
+---@return self
 function Technology:add_effect(effect, unlock_type)
     assert(effect)
 
@@ -35,9 +47,11 @@ function Technology:add_effect(effect, unlock_type)
             end
         end
     elseif self:is_valid('recipe') then
+        ---@cast self StdLib.Data.Recipe
         unlock_type = 'unlock-recipe'
         -- Convert to array and return first valid tech
         local techs = type(effect) == 'string' and { effect } or effect
+        ---@cast techs string[]
         for _, name in pairs(techs) do
             local tech = Technology(name)
             if tech:is_valid('technology') then
@@ -51,6 +65,13 @@ function Technology:add_effect(effect, unlock_type)
     return self
 end
 
+--- Removes an effect from a technology or removes a recipe unlock.
+---@param tech_name? string Technology prototype name
+---@param unlock_type? string Technology effect type
+---@param name? string Effect target name
+---@return self
+---@return string? name
+---@return string? unlock_type
 function Technology:remove_effect(tech_name, unlock_type, name)
     if self:is_valid('technology') then
         return self, name, unlock_type ---@todo implement
@@ -77,6 +98,10 @@ function Technology:remove_effect(tech_name, unlock_type, name)
     return self
 end
 
+--- Adds a science pack to this technology's research ingredients.
+---@param new_pack string|table Science-pack name or `{name, count}` pair
+---@param count? number Ingredient count; defaults to `1`
+---@return self
 function Technology:add_pack(new_pack, count)
     if self:is_valid('technology') then
         local Item = require('__kry_stdlib__/stdlib/data/item')
@@ -98,6 +123,9 @@ function Technology:add_pack(new_pack, count)
     return self
 end
 
+--- Removes a science pack from this technology's research ingredients.
+---@param pack string Science-pack item name
+---@return self
 function Technology:remove_pack(pack)
     if self:is_valid('technology') then
         local ings = self.unit.ingredients
@@ -111,6 +139,11 @@ function Technology:remove_pack(pack)
     return self
 end
 
+--- Replaces a science pack in this technology's research ingredients.
+---@param old_pack string Existing science-pack item name
+---@param new_pack string Replacement science-pack item name
+---@param count? number Replacement ingredient count
+---@return self
 function Technology:replace_pack(old_pack, new_pack, count)
     if self:is_valid('technology') then
         local ings = self.unit.ingredients
@@ -125,9 +158,13 @@ function Technology:replace_pack(old_pack, new_pack, count)
     return self
 end
 
+--- Adds a prerequisite technology.
+---@param tech_name string Prerequisite technology name
+---@return self
 function Technology:add_prereq(tech_name)
     if self:is_valid('technology') and Technology(tech_name):is_valid() then
         self.prerequisites = self.prerequisites or {}
+        ---@type string[]
         local pre = self.prerequisites
         for _, existing in pairs(pre) do
             if existing == tech_name then
@@ -140,6 +177,9 @@ function Technology:add_prereq(tech_name)
     return self
 end
 
+--- Removes a prerequisite technology.
+---@param tech_name string Prerequisite technology name
+---@return self
 function Technology:remove_prereq(tech_name)
     if self:is_valid('technology') then
         local pre = self.prerequisites or {}
@@ -156,6 +196,10 @@ function Technology:remove_prereq(tech_name)
     return self
 end
 
+--- Replaces one prerequisite technology with another.
+---@param old_tech string Existing prerequisite technology name
+---@param new_tech string Replacement prerequisite technology name
+---@return self
 function Technology:replace_prereq(old_tech, new_tech)
     if self:is_valid('technology') then
 		self:remove_prereq(old_tech)
@@ -164,6 +208,9 @@ function Technology:replace_prereq(old_tech, new_tech)
 	return self
 end
 
+--- Copies research-unit properties from another technology.
+---@param tech_name string Source technology name
+---@return self|false result
 function Technology:copy_cost(tech_name)
 	local original = Technology(tech_name)
     if self:is_valid('technology') and original:is_valid() then
@@ -177,6 +224,9 @@ function Technology:copy_cost(tech_name)
 	return self
 end
 
+--- Multiplies this technology's research-unit count.
+---@param mult number Cost multiplier
+---@return self|false result
 function Technology:multiply_cost(mult)
     if self:is_valid('technology') then
 		if self.unit then	-- ensure this exists before referencing it
@@ -189,6 +239,9 @@ function Technology:multiply_cost(mult)
 	return self
 end
 
+--- Adds a recipe-unlock effect to this technology.
+---@param recipe string Recipe prototype name
+---@return nil
 function Technology:add_unlock(recipe)
     if self:is_valid('technology') then
         self.effects = self.effects or {}
@@ -196,7 +249,8 @@ function Technology:add_unlock(recipe)
     end
 end
 
--- return a list of recipes that are unlocked by this technology.
+--- Returns the recipes unlocked by this technology.
+---@return table<string, true>? recipes
 function Technology:get_recipes()
     if self:is_valid('technology') and self.effects then
         local recipes = {}
@@ -209,6 +263,9 @@ function Technology:get_recipes()
     end
 end
 
+--- Removes a recipe-unlock effect from this technology.
+---@param recipe string Recipe prototype name
+---@return nil
 function Technology:remove_unlock(recipe)
 	if self:is_valid('technology') then
 		for index, effect in pairs(self.effects) do

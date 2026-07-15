@@ -46,11 +46,11 @@ function Inventory.each_reverse(inventory, func, ...)
     return index and inventory[index]
 end
 
---- Copies the contents of source inventory to destination inventory by using @{SimpleItemStack}.
+--- Copies the contents of source inventory to destination inventory by using @{ItemStackDefinition}.
 ---@param src LuaInventory the source inventory
 ---@param dest LuaInventory the destination inventory
 ---@param clear boolean [opt=false] clear the contents of the source inventory
----@return SimpleItemStack[] #an array of left over items that could not be inserted into the destination
+---@return ItemStackDefinition[] #an array of left over items that could not be inserted into the destination
 function Inventory.copy_as_simple_stacks(src, dest, clear)
     assert(src, 'missing source inventory')
     assert(dest, 'missing destination inventory')
