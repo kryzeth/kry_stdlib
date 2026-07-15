@@ -1,13 +1,14 @@
-local Table = require('__kry_stdlib__/stdlib/utils/table')
 local Data = require('__kry_stdlib__/stdlib/data/data')
+local Table = require('__kry_stdlib__/stdlib/utils/table')
+local Category = require('__kry_stdlib__/stdlib/data/category')
 local Item = require('__kry_stdlib__/stdlib/data/item')
 
 --- Entity class
 ---@class StdLib.Data.Entity : StdLib.Data
----@field minable data.MinableProperties (AssemblingMachinePrototype and many others)
+---@field minable MinableProperties (AssemblingMachinePrototype and many others)
 ---@field inputs? StdLib.UniqueArray
----@field collision_mask? data.CollisionMaskConnector
----@field collision_box? data.BoundingBox
+---@field collision_mask? CollisionMaskConnector
+---@field collision_box? BoundingBox
 local Entity = {
     __class = 'Entity',
     __index = Data,
@@ -35,12 +36,16 @@ local ignored_fields_for_rescale ={
 }
 
 -- check if given entity is a valid CraftingMachinePrototype
+---@param entity StdLib.Data.Entity Entity wrapper to check
+---@return boolean is_crafting_machine
 local function is_crafting_machine(entity)
 	return entity:is_valid('assembling-machine')
 		or entity:is_valid('rocket-silo')
 		or entity:is_valid('furnace')
 end
 
+--- Gets the first item produced when this entity is mined.
+---@return StdLib.Data.Item item
 function Entity:get_minable_item()
     local Item = require('__kry_stdlib__/stdlib/data/item')
     if self:is_valid() then
@@ -50,13 +55,19 @@ function Entity:get_minable_item()
     return Item()
 end
 
+--- Changes the item produced when this entity is mined.
+---@param item string|table Item name or prototype wrapper
+---@return self
 function Entity:set_minable_item(item)
 	local item = Item(item)
     if self:is_valid() and item:is_valid() then
 		self.minable.result = item.name
     end
+	return self
 end
 
+--- Returns whether players can place this entity.
+---@return boolean placeable
 function Entity:is_player_placeable()
     if self:is_valid() then
         return self:Flags():any({'player-creation', 'placeable-player'})
@@ -64,6 +75,10 @@ function Entity:is_player_placeable()
     return false
 end
 
+--- Adds or removes an item from this lab's inputs.
+---@param name string Item name
+---@param add boolean Add the input when true; remove it otherwise
+---@return self
 function Entity:change_lab_inputs(name, add)
     if self:is_valid('lab') then
         Entity.Unique_Array.set(self.inputs)
@@ -98,13 +113,12 @@ end
 ---@return self
 function Entity:add_category(category_name)
 	if is_crafting_machine(self) then
-		local Category = require('__kry_stdlib__/stdlib/data/category')
-
-		-- check validity of recipe category before adding
-		if Category(category_name, 'recipe-category'):is_valid() then
+		-- ensure category is valid before modifying entity.crafting_categories
+		local category = Category(category_name, 'recipe-category')
+		if category:is_valid() then
 			-- if table does not exist, create an empty table, then add the new category
 			self.crafting_categories = self.crafting_categories or {}
-			table.insert(self.crafting_categories, category_name)
+			category:add_to(self, 'crafting_categories')
 		end
 	end
 
@@ -117,12 +131,7 @@ end
 ---@return self
 function Entity:remove_category(category_name)
 	if is_crafting_machine(self) then
-		for i, category in pairs(self.crafting_categories or {}) do
-			if category == category_name then
-				table.remove(self.crafting_categories, i)
-				return self
-			end
-		end
+		Category(category_name, 'recipe-category'):remove_from(self, 'crafting_categories')
 	end
 
 	return self
@@ -157,6 +166,9 @@ function Entity:remove_categories(category_list)
 end
 
 -- circuit_connector tables cannot be treated blindly
+---@param connector table Circuit connector definition to modify
+---@param scale number Scale factor
+---@return nil
 local function rescale_circuit_connector_definition(connector, scale)
 	-- wire/shadow connection points
 	if connector.points then
@@ -194,6 +206,9 @@ local function rescale_circuit_connector_definition(connector, scale)
 	end
 end
 
+---@param circuit_connector table Circuit connector definition or directional definitions
+---@param scale number Scale factor
+---@return nil
 local function rescale_circuit_connector(circuit_connector, scale)
 	-- generic connector format with only one connector point: 
 	-- circuit_connector = { points = ..., sprites = ... }
@@ -213,6 +228,9 @@ local function rescale_circuit_connector(circuit_connector, scale)
 	end
 end
 
+---@param object BoundingBox Collision box to modify
+---@param shrink_value number Shrink factor
+---@return nil
 local function update_collision(object, shrink_value)
 	-- shrinks collision box by given value (expected 0-1)
 	object[1][1] = object[1][1]*shrink_value
@@ -223,6 +241,11 @@ end
 
 -- magic function provided by Kirazy for use within mini machines
 -- if squeak is true, reduce the collision_box by the given shrink_value (or 0.75)
+---@param entity table Prototype or nested prototype data to modify
+---@param scale number Scale factor
+---@param squeak? boolean Whether to shrink collision boxes
+---@param shrink_value? number Collision-box shrink factor
+---@return nil
 local function rescale_entity(entity, scale, squeak, shrink_value)
 	for key, value in pairs(entity) do
 		-- This section checks to see where we are, and for the existence of scale.
@@ -268,19 +291,26 @@ local function rescale_entity(entity, scale, squeak, shrink_value)
     end
 end
 
+--- Rescales this entity's graphical and spatial properties in place.
+---@param scale number Scale factor
+---@param squeak? boolean Whether to shrink collision boxes
+---@param shrink_value? number Collision-box shrink factor; defaults to `0.75`
+---@return self
 function Entity:rescale_entity(scale, squeak, shrink_value)
 	if self:is_valid() then
 		rescale_entity(self._raw, scale, squeak, shrink_value)
 	end
+	return self
 end
 
 --- Returns the rounded-up width and height of the entity's collision box.
 ---@return integer? width
 ---@return integer? height
 function Entity:get_dimensions()
-    if not self:is_valid() or not self.collision_box then return end
+    if not self:is_valid() then return end
     local box = self.collision_box
-	---@cast box table<any, any>
+	if not box then return end
+
     local left_top = box.left_top or box[1]
     local right_bottom = box.right_bottom or box[2]
 
