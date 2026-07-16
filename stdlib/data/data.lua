@@ -333,11 +333,11 @@ function Data:has_flag(flag)
     return self:Flags():all(flag)
 end
 
---- Returns whether all requested flags are present.
+--- Returns whether any requested flag is present.
 ---@param flag string|string[] Flag or flags to check
 ---@return boolean present
 function Data:any_flag(flag)
-    return self:Flags():all(flag)
+    return self:Flags():any(flag)
 end
 
 --)) Flags ((--

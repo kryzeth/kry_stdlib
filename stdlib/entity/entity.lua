@@ -100,16 +100,16 @@ function Entity.set_data(entity, data)
     return nil
 end
 
---- Freezes an entity, by making it inactive, inoperable, and non-rotatable, or unfreezes by doing the reverse.
+--- Freezes an entity by disabling it by script and making it inoperable and non-rotatable.
 ---@param entity LuaEntity the entity to freeze or unfreeze
 ---@param mode boolean? [opt=true] if true, freezes the entity, if false, unfreezes the entity. If not specified, it is set to true
 ---@return LuaEntity the entity that has been frozen or unfrozen
 function Entity.set_frozen(entity, mode)
     assert(entity, 'missing entity argument')
-    mode = mode == false and true or false
-    entity.active = mode
-    entity.operable = mode
-    entity.rotatable = mode
+    local frozen = mode ~= false
+    entity.disabled_by_script = frozen
+    entity.operable = not frozen
+    entity.rotatable = not frozen
     return entity
 end
 
@@ -119,9 +119,9 @@ end
 ---@return LuaEntity the entity that has been made indestructable or destructable
 function Entity.set_indestructible(entity, mode)
     assert(entity, 'missing entity argument')
-    mode = mode == false and true or false
-    entity.minable = mode
-    entity.destructible = mode
+    local indestructible = mode ~= false
+    entity.minable_flag = not indestructible
+    entity.destructible = not indestructible
     return entity
 end
 
@@ -172,8 +172,8 @@ function Entity.count_circuit_connections(entity)
 end
 
 function Entity.has_fluidbox(entity)
-    local box = entity.fluidbox
-    return box and #box > 0
+    assert(entity, 'missing entity argument')
+    return entity.prototype.get_fluid_capacity() > 0
 end
 
 function Entity.can_deconstruct(entity)
