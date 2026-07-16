@@ -6,7 +6,7 @@ describe('Data', function()
 
     before_each(function()
         require('spec/setup/data').reload()
-        Data = require('__stdlib2-continued__/stdlib/data/data')
+        Data = require('__kry_stdlib__/stdlib/data/data')
         Raw = _G["data"].raw["recipe"]
         R = Data("stone-furnace", "recipe")
         F = Data("fake", "fake")

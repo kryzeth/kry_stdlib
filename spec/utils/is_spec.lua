@@ -1,6 +1,6 @@
 require('spec/setup/busted')()
 
-local Is = require('__stdlib2-continued__/stdlib/utils/is')
+local Is = require('__kry_stdlib__/stdlib/utils/is')
 
 describe(
     'variable type checks',

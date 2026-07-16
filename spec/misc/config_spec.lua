@@ -1,7 +1,7 @@
 require('spec/setup/busted')()
 
-local Config = require('__stdlib2-continued__/stdlib/misc/config')
-local table = require('__stdlib2-continued__/stdlib/utils/table')
+local Config = require('__kry_stdlib__/stdlib/misc/config')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 
 --[[ the table to be duplicated for all tests. ]]--
 _G.config_template = {

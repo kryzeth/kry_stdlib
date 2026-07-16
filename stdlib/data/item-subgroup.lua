@@ -2,15 +2,21 @@ local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table')
 local Groups = require('__kry_stdlib__/stdlib/data/modules/groups')
 
---- ItemSubgroup
+--- Wrapper for Factorio item-subgroup prototypes.
 ---@class StdLib.Data.ItemSubgroup : StdLib.Data
+---@field group string Parent item-group prototype name
 local ItemSubgroup = {
     __class = 'ItemSubgroup',
     __index = Data,
 }
 
+--- Looks up and wraps an item subgroup by name.
+---@param item_subgroup string Item-subgroup prototype name
+---@return StdLib.Data.ItemSubgroup item_subgroup
 function ItemSubgroup:__call(item_subgroup)
-    return self:get(item_subgroup, 'item-subgroup')
+    local new = self:get(item_subgroup, 'item-subgroup')
+    ---@cast new StdLib.Data.ItemSubgroup
+    return new
 end
 setmetatable(ItemSubgroup, ItemSubgroup)
 
@@ -25,16 +31,16 @@ local prototype_types = Table.array_combine(
 )
 
 --- Returns whether the prototype should not be included in the row count.
----@param prototype table
----@return boolean
+---@param prototype table Prototype to inspect
+---@return boolean? hidden
 local function is_hidden(prototype)
     return prototype.hidden or prototype.hidden_in_factoriopedia
 end
 
 --- Counts visible prototypes assigned to the given subgroup.
 --- Entries with the same internal name are only counted once.
----@param subgroup_name string
----@return integer
+---@param subgroup_name string Item-subgroup prototype name
+---@return integer count
 local function count_visible_subgroup_entries(subgroup_name)
     local count = 0
     local counted_names = {}
@@ -51,7 +57,7 @@ local function count_visible_subgroup_entries(subgroup_name)
     return count
 end
 
---- Count the number of visible entries in this subgroup.
+--- Counts the number of visible entries in this subgroup.
 --- Hidden prototypes and Factoriopedia-hidden prototypes are ignored.
 --- Prototypes with duplicate internal names are only counted once.
 ---@return integer? count
@@ -62,13 +68,14 @@ function ItemSubgroup:count_visible_entries()
 end
 ItemSubgroup.get_visible_entry_count = ItemSubgroup.count_visible_entries
 
---- Count the number of visible rows used by this subgroup.
+--- Counts the number of visible rows used by this subgroup.
 --- Returns zero if the subgroup contains no visible entries.
 --- Returns one for 1-10 visible entries, two for 11-20 visible entries, etc.
 ---@return integer? rows
 function ItemSubgroup:count_rows()
     if self:is_valid('item-subgroup') then
         local count = self:count_visible_entries()
+        ---@cast count integer
 
         if count <= 0 then
             return 0

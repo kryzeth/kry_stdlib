@@ -6,11 +6,19 @@ end
 
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
+--- Wrapper for startup setting values and mod-setting prototypes.
+---@class StdLib.Data.Setting
+---@field name string Setting name
+---@field valid string|false Setting type, `"startup"`, or `false` when invalid
+---@field _raw? table Wrapped setting value or prototype
+---@field value? boolean|number|string|table Resolved setting value
 local Setting = {
     __class = "Setting"
 }
 setmetatable(Setting, Setting)
 
+--- Supported mod-setting prototype types.
+---@type string[]
 local setting_types = {
     "bool-setting",
     "int-setting",
@@ -19,6 +27,10 @@ local setting_types = {
     "color-setting",
 }
 
+--- Finds a mod-setting prototype and its prototype type.
+---@param name string Setting name
+---@return table? prototype
+---@return string? setting_type
 local function find_setting_prototype(name)
     if not data or not data.raw then return nil, nil end
 
@@ -32,9 +44,9 @@ local function find_setting_prototype(name)
     return nil, nil
 end
 
---- Is this a valid setting object?
----@param type string? [opt] if present, is the setting this type?
----@return boolean
+--- Returns whether this wrapper contains a valid setting.
+---@param type? string Setting type to require
+---@return boolean valid
 function Setting:is_valid(type)
     if type then
         return rawget(self, "valid") == type or false
@@ -45,7 +57,7 @@ end
 
 --- Force a setting value and hide it from the settings UI.
 --- Only works during settings phase, when _raw is a setting prototype.
----@param value boolean|number|string|table
+---@param value boolean|number|string|table Setting value
 ---@return self
 function Setting:force_hidden(value)
     if self:is_valid() and self._raw then
@@ -56,9 +68,9 @@ function Setting:force_hidden(value)
     return self
 end
 
---- Returns a startup setting object.
----@param name string
----@return table
+--- Looks up and wraps a startup setting value or mod-setting prototype.
+---@param name string Setting name
+---@return StdLib.Data.Setting setting
 function Setting:get(name)
     local raw
     local valid
@@ -80,6 +92,7 @@ function Setting:get(name)
     }
 
     setmetatable(new, self._object_mt)
+    ---@cast new StdLib.Data.Setting
     return new
 end
 

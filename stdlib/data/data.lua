@@ -7,13 +7,15 @@ end
 local Table = require('__kry_stdlib__/stdlib/utils/table')
 local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
 
---TODO fields temporary added ??? I don't know what this comment means
-
 --- Base wrapper for Factorio data-stage prototypes.
 ---@class StdLib.Data : StdLib.Core
 ---@field name? string
 ---@field type? string
 ---@field _raw? table
+---@field _products? table
+---@field _parent? StdLib.Data
+---@field _requested_object? string|table
+---@field _requested_type? string
 ---@field valid string|false
 ---@field extended boolean
 ---@field overwrite boolean
@@ -331,11 +333,11 @@ function Data:has_flag(flag)
     return self:Flags():all(flag)
 end
 
---- Returns whether all requested flags are present.
+--- Returns whether any requested flag is present.
 ---@param flag string|string[] Flag or flags to check
 ---@return boolean present
 function Data:any_flag(flag)
-    return self:Flags():all(flag)
+    return self:Flags():any(flag)
 end
 
 --)) Flags ((--
@@ -523,7 +525,7 @@ end
 
 --- Replaces the prototype icon or layered icons.
 --- Removes `icons` when a single icon path is supplied.
----@param icon string|data.IconData[] Icon path or layered icon definitions
+---@param icon string|IconData[] Icon path or layered icon definitions
 ---@param size? integer Icon size in pixels
 ---@return self
 function Data:replace_icon(icon, size)
@@ -545,7 +547,7 @@ end
 
 --- Gets the layered icon definitions.
 ---@param copy? boolean Return a deep copy
----@return data.IconData[]? icons
+---@return IconData[]? icons
 function Data:get_icons(copy)
     if self:is_valid() then
         return copy and Table.deep_copy(self.icons) or self.icons
@@ -563,7 +565,7 @@ function Data:get_icon()
 end
 
 --- Converts a single icon to layered icons and appends additional layers.
----@param ... data.IconData Icon layers to append
+---@param ... IconData Icon layers to append
 ---@return self
 function Data:make_icons(...)
     if self:is_valid() then
@@ -614,10 +616,13 @@ function Data:pairs(source, opts)
     if not source and self.type then
         source = data.raw[self.type]
     else
-        local type = type(source)
-        source = type == 'string' and data.raw[source] or (assert(type == 'table', 'Source missing') and source)
+        local source_type = type(source)
+        if source_type == 'string' then
+            source = assert(data.raw[source], 'Source missing')
+        else
+            assert(source_type == 'table', 'Source missing')
+        end
     end
-    ---@cast source -false
 
     local function _next()
         index, val = next(source, index)

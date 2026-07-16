@@ -1,19 +1,24 @@
 local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 
---- ItemGroup
+--- Wrapper for Factorio item-group prototypes.
 ---@class StdLib.Data.ItemGroup : StdLib.Data
 local ItemGroup = {
     __class = 'ItemGroup',
     __index = Data,
 }
 
+--- Looks up and wraps an item group by name.
+---@param item_group string Item-group prototype name
+---@return StdLib.Data.ItemGroup item_group
 function ItemGroup:__call(item_group)
-    return self:get(item_group, 'item-group')
+    local new = self:get(item_group, 'item-group')
+    ---@cast new StdLib.Data.ItemGroup
+    return new
 end
 setmetatable(ItemGroup, ItemGroup)
 
---- Count the number of visible rows used by this item group.
---- item subgroup contributes zero rows if it contains no visible entries.
+--- Counts the number of visible rows used by this item group.
+--- An item subgroup contributes zero rows if it contains no visible entries.
 --- Each subgroup contributes one row for 1-10 visible entries.
 --- Each subgroup contributes two rows for 11-20 visible entries, etc.
 ---@return integer? rows

@@ -1,5 +1,5 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
-local Table = require('__kry_stdlib__/stdlib/utils/table')
+local Category = require('__kry_stdlib__/stdlib/data/category')
 
 --- Recipe class
 ---@class StdLib.Data.Recipe : StdLib.Data
@@ -8,10 +8,13 @@ local Recipe = {
     __index = Data,
 }
 
+---@param recipe string Recipe prototype name
+---@return StdLib.Data.Recipe recipe
 function Recipe:__call(recipe)
     local new = self:get(recipe, 'recipe')
     -- rawset(new, 'Ingredients', {})
     -- rawset(new, 'Results', {})
+    ---@cast new StdLib.Data.Recipe
     return new
 end
 setmetatable(Recipe, Recipe)
@@ -270,13 +273,12 @@ end
 ---@return self
 function Recipe:add_category(category_name)
     if self:is_valid() then
-        local Category = require('__kry_stdlib__/stdlib/data/category')
-		-- check validity of recipe category before adding
-		if Category(category_name, 'recipe-category'):is_valid() then
-			-- generate a default categories table if one does not already exist
-			self.categories = self.categories or {"crafting"}
-			-- then we add the new category
-			table.insert(self.categories, category_name)
+		-- ensure category is valid before modifying recipe.categories
+		local category = Category(category_name, 'recipe-category')
+		if category:is_valid() then
+			-- 'crafting' is set by default when recipe.categories is undefined
+			self.categories = self.categories or {'crafting'}
+			category:add_to(self, 'categories')
 		end
     end
     return self
@@ -287,12 +289,8 @@ end
 ---@return self
 function Recipe:remove_category(category_name)
     if self:is_valid() then
-        for i, category in pairs(self.categories or {}) do
-            if category == category_name then
-                table.remove(self.categories, i)
-                return self
-            end
-        end
+		-- remove_from performs category validity checking
+		Category(category_name, 'recipe-category'):remove_from(self, 'categories')
     end
     return self
 end

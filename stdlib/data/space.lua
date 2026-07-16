@@ -2,8 +2,9 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
---- Space, the final frontier. Intended for planet, space-connection, and space-location
+--- Wrapper for planet, space-connection, and space-location prototypes.
 ---@class StdLib.Data.Space : StdLib.Data
+---@field asteroid_spawn_definitions? table[]
 local Space = {
     __class = 'Space',
     __index = Data,
@@ -14,6 +15,10 @@ setmetatable(Space, Space)
 -- ----------------------------
 -- Internal helpers
 -- ----------------------------
+--- Removes the first matching asteroid spawn definition.
+---@param asteroid_spawn_definitions table[] Asteroid spawn definitions
+---@param name string Asteroid prototype name
+---@return boolean? removed
 local function remove_asteroid(asteroid_spawn_definitions,name) -- expected table, string
 	for key, asteroid in pairs(asteroid_spawn_definitions) do
         if asteroid.asteroid == name then
@@ -23,7 +28,11 @@ local function remove_asteroid(asteroid_spawn_definitions,name) -- expected tabl
 	end
 end
 
--- this generates a series of spawn point values based on input of distances (5)
+--- Generates spawn-point values at the supplied distances.
+---@param origin table Origin asteroid spawn properties
+---@param destination table Destination asteroid spawn properties
+---@param distances number[] Normalized connection distances
+---@return table[] values
 local function generate_values_by_distance(origin,destination,distances)
 	local results = {}
 	-- define spike multiplier
@@ -64,6 +73,10 @@ local function generate_values_by_distance(origin,destination,distances)
 	return results
 end
 
+--- Generates asteroid spawn points between two endpoints.
+---@param origin table Origin asteroid spawn properties
+---@param destination table Destination asteroid spawn properties
+---@return table[] spawn_points
 local function generate_spawn_points(origin,destination)
 	local distances = {0.05, 0.35, 0.5, 0.65, 0.95}
 	local values = generate_values_by_distance(origin, destination, distances)
@@ -102,12 +115,16 @@ local function generate_spawn_points(origin,destination)
 	return spawn_points
 end
 
--- merges two asteroid definitions origin and destination into a single asteroid entry
+--- Merges origin and destination asteroid definitions into one connection entry.
+---@param origin? table Origin asteroid definition
+---@param destination? table Destination asteroid definition
+---@return table asteroid_definition
 local function merge_asteroid_definitions(origin, destination)
 	local asteroid_name, asteroid_type
 	local asteroid_spawn_points = {}
 	-- destination does not contain this asteroid, use only origin properties
-	if not destination then	
+	if not destination then
+		---@cast origin table
 		asteroid_name = origin.asteroid
 		asteroid_type = origin.type
 		-- starts at origin probability near origin, ends at 0 probability near destination
@@ -155,6 +172,10 @@ local function merge_asteroid_definitions(origin, destination)
 	return {asteroid = asteroid_name, type = asteroid_type, spawn_points= asteroid_spawn_points}
 end
 
+--- Generates the asteroid definitions for a connection between two locations.
+---@param origin StdLib.Data.Space Origin planet or space location
+---@param destination StdLib.Data.Space Destination planet or space location
+---@return table[] asteroid_spawn_definitions
 local function generate_connection_asteroids(origin, destination)
     local origin_asteroids = origin.asteroid_spawn_definitions or {}
     local destination_asteroids = destination.asteroid_spawn_definitions or {}
@@ -187,14 +208,18 @@ end
 -- ----------------------------
 -- Asteroid spawn management
 -- ----------------------------
--- expected string name of asteroid to remove
+--- Removes an asteroid from this prototype's spawn definitions.
+---@param asteroid string Asteroid prototype name
+---@return nil
 function Space:remove_from_asteroid_spawn_definition(asteroid) 
 	if self:is_valid() then
 		remove_asteroid(self.asteroid_spawn_definitions,asteroid)
 	end
 end
 
--- expected table of asteroid to be added
+--- Adds an asteroid spawn definition to this prototype.
+---@param asteroid table Asteroid spawn definition
+---@return nil
 function Space:add_asteroid_spawn_definition(asteroid) 
     assert(type(asteroid) == "table", "asteroid must be a table")
 	if self:is_valid() then
@@ -202,12 +227,16 @@ function Space:add_asteroid_spawn_definition(asteroid)
 	end
 end
 
+--- Returns a copy of this prototype's asteroid spawn definitions.
+---@return table[]? asteroid_spawn_definitions
 function Space:get_asteroid_spawn_definitions()
 	if self:is_valid() then
 		return table.deepcopy(self.asteroid_spawn_definitions)
 	end
 end
 
+--- Removes all asteroid spawn definitions from this prototype.
+---@return boolean cleared
 function Space:clear_asteroid_spawn_definitions()
 	if self:is_valid() then
 		self.asteroid_spawn_definitions = {}
@@ -215,7 +244,10 @@ function Space:clear_asteroid_spawn_definitions()
 	return true
 end
 
--- expected string name and string type of asteroid_spawn_definitions to be copied
+--- Copies asteroid spawn definitions from another space prototype.
+---@param copy_name string Source prototype name
+---@param type_name string Source prototype type
+---@return nil
 function Space:copy_asteroid_spawn_definitions(copy_name,type_name) 
     assert(type(copy_name) == "string", "copy_name must be a string")
     assert(type(type_name) == "string", "type_name must be a string")
@@ -230,8 +262,10 @@ function Space:copy_asteroid_spawn_definitions(copy_name,type_name)
 	end
 end
 
--- expected planet/space-location self, planet/space-location destination
--- returns the space-connection that was created
+--- Creates a space connection between this location and a destination.
+---@param destination StdLib.Data.Space Destination planet or space location
+---@param length? number Connection length; defaults to `15000`
+---@return StdLib.Data.Space connection
 function Space:create_space_connection(destination, length)
     assert(self.type == "planet" or self.type == "space-location",
 		"origin must be planet or space-location")

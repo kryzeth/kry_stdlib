@@ -1,13 +1,13 @@
 require('spec/setup/busted')()
 
 local Recipe, Raw, Rawtech
-local table = require('__stdlib2-continued__/stdlib/utils/table')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 
 describe('Recipe', function()
 
     before_each(function()
         require('spec/setup/data').reload()
-        Recipe = require('__stdlib2-continued__/stdlib/data/recipe')
+        Recipe = require('__kry_stdlib__/stdlib/data/recipe')
         Raw = _G["data"].raw["recipe"]
         Rawtech = _G["data"].raw["technology"]["steel-processing"]
     end)

@@ -110,7 +110,10 @@ jobs:
             --exclude='harness-files.txt'
             --exclude='.gitignore'
             --exclude='.gitattributes'
+            --exclude='.gitmodules'
             --exclude='.luacheckrc'
+            --exclude='.mailmap'
+            --exclude='.editorconfig'
           )
 
           while IFS= read -r pattern; do
