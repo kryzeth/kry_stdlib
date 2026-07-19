@@ -1,7 +1,7 @@
 {
 	"name": "kry_stdlib",
 	"author": "Kryzeth, Afforess, Jackie P. Mueller, Goakiller900",
-	"version": "2.2.6",
+	"version": "2.2.7",
 	"factorio_version": "2.1",
 	"title": "Kryzeth Standard Library",
 	"homepage": "https://github.com/kryzeth/kry_stdlib",
@@ -11,12 +11,12 @@
 	],
 	"package": {
 		"ignore": [
-		  "wiki/**",
-		  "spec/**",
-		  "tools/**",
-		  "doc/**",
-		  "faketorio/**",
-      ".publish/**"
+			"wiki/**",
+			"spec/**",
+			"tools/**",
+			"doc/**",
+			"faketorio/**",
+			".publish/**"
 		]
 	}
 }
