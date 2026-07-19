@@ -4,7 +4,7 @@ if _G.remote and _G.script then
     error('Data Modules can only be required in the data stage', 2)
 end
 
-local Table = require('__kry_stdlib__/stdlib/utils/table')
+local table = require('__kry_stdlib__/stdlib/utils/table')
 local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
 
 --- Base wrapper for Factorio data-stage prototypes.
@@ -86,7 +86,7 @@ function Data:print(...)
     for _, key in pairs { ... } do
         arr[#arr + 1] = inspect(self[key])
     end
-    print(Table.unpack(arr))
+    print(table.unpack(arr))
     return self
 end
 
@@ -107,7 +107,7 @@ function Data:log(tbl)
         if path[#path] == 'class' then
             return { self.__class, item.__class }
         end
-        if path[#path] == inspect.METATABLE then
+        if path[#path] == inspect.METAtable then
             return { self.__class or item.__class, item.__class }
         end
         return item
@@ -194,7 +194,7 @@ function Data:copy(new_name, result, opts)
     assert(type(new_name) == 'string', 'new_name must be a string')
 	if self:is_valid() then
         result = result or new_name
-        local copy = Table.deep_copy(rawget(self, '_raw'))
+        local copy = table.deep_copy(rawget(self, '_raw'))
         copy.name = new_name
 
         -- For entities
@@ -281,7 +281,7 @@ function Data:change_type(new_type, opts)
     assert(type(new_type) == 'string', 'new_type must be a string')
 	if self:is_valid() then
 		-- Copy the raw prototype so we do not mutate the original in-place
-        local copy = Table.deep_copy(rawget(self, '_raw'))
+        local copy = table.deep_copy(rawget(self, '_raw'))
 		copy.type = new_type
 		
 		-- Wrap the copied prototype using the existing logic
@@ -369,7 +369,7 @@ function Data:get_function_results(func, ...)
 end
 
 --- Applies the unique-array metatable to a table when this wrapper is valid.
----@param tab? table Table to update
+---@param tab? table table to update
 ---@return self
 function Data:set_unique_array(tab)
     if self:is_valid() and tab then
@@ -421,7 +421,7 @@ function Data:get_fields(arr, as_dictionary)
         for _, name in pairs(arr) do
             values[as_dictionary and name or #values + 1] = self[name]
         end
-        return as_dictionary and values or Table.unpack(values)
+        return as_dictionary and values or table.unpack(values)
     end
 end
 
@@ -457,9 +457,7 @@ function Data:copy_fields(copy_name, fields)
 	assert(type(fields) == "table", "Expected table for fields")
 	local data_object = Data(copy_name,self.type)
     if self:is_valid() and data_object:is_valid() then
-		-- standardize table as dictionary
-		local Table = require('__kry_stdlib__/stdlib/utils/table')
-		fields = Table.array_to_dictionary(fields)
+		fields = table.array_to_dictionary(fields)
 		for field_name, field_data in pairs(fields) do
 			-- if table was not converted via array_to_dictionary, copy fields from data_object
 			if field_name ~= field_data then
@@ -470,6 +468,34 @@ function Data:copy_fields(copy_name, fields)
 		end
 	end
     return self
+end
+
+--- Copies all existing fields from another prototype of the same type.
+--- The `name` and `type` fields are always excluded.
+--- An optional array can specify additional fields not to copy.
+---@param copy_name string Name of the prototype to copy from
+---@param exceptions? string[] Fields not to copy
+---@return self
+function Data:copy_all_fields(copy_name, exceptions)
+	assert(type(copy_name) == "string", "Expected string for name of data object to copy from")
+	assert(exceptions == nil or type(exceptions) == "table", "Expected nil or table for exceptions")
+
+	local data_object = Data(copy_name, self.type)
+
+	if self:is_valid() and data_object:is_valid() then
+		-- standardize exceptions as a dictionary for direct field lookups
+		exceptions = table.array_to_dictionary(table.deepcopy(exceptions or {}))
+		exceptions.name = true
+		exceptions.type = true
+
+		for field_name, field_data in pairs(data.raw[self.type][copy_name]) do
+			if not exceptions[field_name] then
+				self[field_name] = table.deepcopy(field_data)
+			end
+		end
+	end
+
+	return self
 end
 
 --- Changes the item subgroup and/or order.
@@ -511,13 +537,14 @@ function Data:set_order(order)
 end
 
 --- Appends a string to the current order string.
+--- Does nothing if `self.order` does not exist.
 ---@param order_suffix string String to append to `self.order`
 ---@return self
 function Data:append_order(order_suffix)
     assert(type(order_suffix) == "string", "order_suffix must be a string")
 
-    if self:is_valid() then
-        self.order = (self.order or "") .. order_suffix
+    if self:is_valid() and self.order then
+        self.order = self.order .. order_suffix
     end
 
     return self
@@ -550,7 +577,7 @@ end
 ---@return IconData[]? icons
 function Data:get_icons(copy)
     if self:is_valid() then
-        return copy and Table.deep_copy(self.icons) or self.icons
+        return copy and table.deep_copy(self.icons) or self.icons
 	else
 		return nil
     end
@@ -578,7 +605,7 @@ function Data:make_icons(...)
             end
         end
         for _, icon in pairs { ... } do
-            self.icons[#self.icons + 1] = Table.deep_copy(icon)
+            self.icons[#self.icons + 1] = table.deep_copy(icon)
         end
     end
     return self
@@ -653,7 +680,7 @@ function Data:get(object, object_type, opts)
         valid = false,
         extended = false,
         overwrite = false,
-        options = Table.merge(Table.deep_copy(Data._default_options), opts or self.options or {})
+        options = table.merge(table.deep_copy(Data._default_options), opts or self.options or {})
     }
 
     if type(object) == 'table' then
