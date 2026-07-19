@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.7
+Date: July 19, 2026
+  Bugfixes:
+    - Changed Data:append_order to only append to existing order; should not create new order field.
+  Minor Features:
+    - Added Data:copy_all_fields to copy all fields from a source prototype.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.6
 Date: July 15, 2026
   Bugfixes:

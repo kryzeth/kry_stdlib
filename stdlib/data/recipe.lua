@@ -336,9 +336,9 @@ end
 Recipe.get_tech = Recipe.get_technologies
 
 --- Copies recipe unlocks from another recipe.
----@param copy_recipe string Source recipe name
-function Recipe:copy_unlock(copy_recipe)
-	local copy_recipe = Recipe(copy_recipe)
+---@param copy_name string Source recipe name
+function Recipe:copy_unlock(copy_name)
+	local copy_recipe = Recipe(copy_name)
 	if self:is_valid() and copy_recipe:is_valid() then
 		-- get list of technologies that unlock copy_recipe
 		local technologies = copy_recipe:get_technologies()
@@ -346,8 +346,11 @@ function Recipe:copy_unlock(copy_recipe)
 			for tech_name in pairs(technologies) do
 				self:add_unlock(tech_name)
 			end
-		else self:set_enabled(true)	-- otherwise assume recipe begins enabled
+		else
+			self:set_enabled(true)	-- otherwise assume recipe begins enabled
+			log("Failed to locate source techs for: "..copy_name..". Setting enabled to true for: "..self.name)
 		end
+	else log("Failed to copy unlock: self or copy_name were invalid")
 	end
 end
 
