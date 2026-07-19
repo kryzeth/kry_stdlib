@@ -1,5 +1,6 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
-local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
+local table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
+local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
 
 --- Wrapper for Factorio category prototypes.
 ---@class StdLib.Data.Category : StdLib.Data
@@ -9,9 +10,11 @@ local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.
 ---| '"ammo-category"'
 ---| '"equipment-category"'
 ---| '"fuel-category"'
----| '"recipe-category"'
+---| '"item-group"'
+---| '"item-subgroup"'
 ---| '"module-category"'
 ---| '"rail-category"'
+---| '"recipe-category"'
 ---| '"resource-category"'
 
 local Category = {
@@ -21,17 +24,13 @@ local Category = {
 }
 setmetatable(Category, Category)
 
---- Supported category prototype types.
+--- Supported category prototype types. Uses the list from groups.category
 ---@type table<StdLib.Data.CategoryType, true>
-Category.category_types = {
-    ['ammo-category'] = true,
-    ['equipment-category'] = true,
-    ['fuel-category'] = true,
-    ['recipe-category'] = true,
-    ['module-category'] = true,
-    ['rail-category'] = true,
-    ['resource-category'] = true
-}
+Category.category_types = {}
+
+for _, prototype_type in pairs(groups.category) do
+    Category.category_types[prototype_type] = true
+end
 
 --- Adds this category to a target's category-list field.
 ---@param target StdLib.Data Target prototype wrapper
@@ -52,7 +51,7 @@ end
 ---@return StdLib.Data target
 function Category:remove_from(target, field)
     if self:is_valid() and target:is_valid() then
-        Table.remove_string(target[field] or {}, self.name)
+        table.remove_string(target[field] or {}, self.name)
     end
 
     return target
