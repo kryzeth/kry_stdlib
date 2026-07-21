@@ -76,7 +76,9 @@ local tick_registered = false
 local tick_disable_pending = false
 
 local function has_pending_work()
-	return data and (data.entity_count > 0 or data.delayed_count > 0)
+	return data
+		and ((data.entity_count or 0) > 0
+			or (data.delayed_count or 0) > 0)
 end
 
 local function enable_tick()
@@ -145,8 +147,16 @@ local function rebuild_entity_counts()
 		group.next_due_tick = nil
 		group.next_due_dirty = nil
 
-		for _, entry in pairs(group.entities) do
-			entry.next_check_tick = nil
+		for unit_number, entry in pairs(group.entities) do
+			-- Legacy Spread storage stored LuaEntity directly.
+			if type(entry) == "userdata" then
+				group.entities[unit_number] = {
+					entity = entry,
+					payload = nil
+				}
+			else
+				entry.next_check_tick = nil
+			end
 		end
 		
 		entity_count = entity_count + count_entries(group.entities)
