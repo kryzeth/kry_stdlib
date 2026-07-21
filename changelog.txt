@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.8
+Date: July 21, 2026
+  Bugfixes:
+    - Minor back compat fix when loading saves from v2.2.4 that had spread-on-ticks mods enabled.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.7
 Date: July 19, 2026
   Bugfixes:
