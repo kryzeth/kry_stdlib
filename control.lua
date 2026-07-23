@@ -13,7 +13,6 @@ setmetatable(Spread, Spread)
 
 local INTERFACE_NAME = "kry-stdlib-spread-on-tick"
 local DEFAULT_MAX_CHECKS_PER_TICK = 50
-
 --------------------------------------------------------------------------------
 -- Runtime setting cache
 --------------------------------------------------------------------------------
@@ -33,10 +32,15 @@ local function update_max_checks(event)
 end
 
 --------------------------------------------------------------------------------
--- Storage
+-- Local variable cache
 --------------------------------------------------------------------------------
 
 local data
+local next_scheduler_tick
+
+local function invalidate_next_scheduler_tick()
+	next_scheduler_tick = nil
+end
 
 local function setup_storage()
 	storage.kry_stdlib_spread = storage.kry_stdlib_spread or {}
@@ -137,6 +141,13 @@ local function rebuild_entity_counts()
 	for _, group in pairs(data.groups) do
 		group.entities = group.entities or {}
 		group.delayed_entities = group.delayed_entities or {}
+		local next_delayed_tick
+		for _, delayed in pairs(group.delayed_entities) do
+			if not next_delayed_tick or delayed.tick < next_delayed_tick then
+				next_delayed_tick = delayed.tick
+			end
+		end
+		group.next_delayed_tick = next_delayed_tick
 		group.interval_ticks = math.max(1, math.floor(tonumber(group.interval_ticks) or 1))
 
 		-- Begin a fresh cycle after configuration changes.
@@ -208,6 +219,18 @@ local function wake_group(group, tick)
 	end
 end
 
+local function rebuild_next_delayed_tick(group)
+	local next_delayed_tick
+
+	for _, delayed in pairs(group.delayed_entities) do
+		if not next_delayed_tick or delayed.tick < next_delayed_tick then
+			next_delayed_tick = delayed.tick
+		end
+	end
+
+	group.next_delayed_tick = next_delayed_tick
+end
+
 local function get_next_work_tick(tick)
 	local next_work_tick
 
@@ -232,13 +255,14 @@ local function get_next_work_tick(tick)
 			end
 
 			-- Delayed entries can wake the scheduler before the next group cycle begins
-			for _, delayed in pairs(group.delayed_entities) do
-				if delayed.tick <= tick then
+			local delayed_tick = group.next_delayed_tick
+			if delayed_tick then
+				if delayed_tick <= tick then
 					return tick
 				end
 
-				if not next_work_tick or delayed.tick < next_work_tick then
-					next_work_tick = delayed.tick
+				if not next_work_tick or delayed_tick < next_work_tick then
+					next_work_tick = delayed_tick
 				end
 			end
 		end
@@ -339,6 +363,7 @@ end
 --------------------------------------------------------------------------------
 
 local function register_group(definition)
+	invalidate_next_scheduler_tick()
 	if type(definition) ~= "table" then
 		error("register_group expects a table")
 	end
@@ -423,6 +448,7 @@ local function register_group(definition)
 end
 
 local function unregister_group(group_name)
+	invalidate_next_scheduler_tick()
 	local data = get_data()
 	local group = data.groups[group_name]
 
@@ -437,6 +463,7 @@ local function unregister_group(group_name)
 end
 
 local function clear_group(group_name)
+	invalidate_next_scheduler_tick()
 	local group = get_group(group_name)
 	if not group then return end
 
@@ -446,13 +473,17 @@ local function clear_group(group_name)
 
 	group.entities = {}
 	group.delayed_entities = {}
+	group.next_delayed_tick = nil
 	group.previous_key = nil
 	group.pending_key = nil
+	group.cycle_active = false
+	group.next_cycle_tick = nil
 	
 	disable_tick_if_idle()
 end
 
 local function reset_group(group_name)
+	invalidate_next_scheduler_tick()
 	local group = get_group(group_name)
 	if not group then return end
 
@@ -463,6 +494,7 @@ local function reset_group(group_name)
 end
 
 local function add_entity(group_name, entity, payload, delay_ticks)
+	invalidate_next_scheduler_tick()
 	local group = get_group(group_name)
 
 	if not group then
@@ -480,25 +512,40 @@ local function add_entity(group_name, entity, payload, delay_ticks)
 	delay_ticks = delay_ticks or 0
 
 	-- Remove an existing delayed entry before replacing it.
-	if group.delayed_entities[unit_number] then
+	local old_delayed = group.delayed_entities[unit_number]
+	if old_delayed then
 		group.delayed_entities[unit_number] = nil
 		data.delayed_count = math.max(0, data.delayed_count - 1)
+
+		if group.next_delayed_tick == old_delayed.tick then
+			rebuild_next_delayed_tick(group)
+		end
 	end
 
 	-- Re-adding an active entity updates its reference and payload without
 	-- resetting the interval timer.
 	if group.entities[unit_number] then
-		group.entities[unit_number] = { entity = entity, payload = payload }
-		wake_group(group, game.tick)
+		group.entities[unit_number] = {
+			entity = entity,
+			payload = payload
+		}
 		return
 	end
 
 	if delay_ticks > 0 then
+		local delayed_tick = game.tick + delay_ticks
+
 		group.delayed_entities[unit_number] = {
 			entity = entity,
 			payload = payload,
-			tick = game.tick + delay_ticks
+			tick = delayed_tick
 		}
+
+		if not group.next_delayed_tick
+			or delayed_tick < group.next_delayed_tick then
+
+			group.next_delayed_tick = delayed_tick
+		end
 
 		data.delayed_count = data.delayed_count + 1
 		enable_tick()
@@ -512,6 +559,7 @@ local function add_entity(group_name, entity, payload, delay_ticks)
 end
 
 local function remove_entity(group_name, unit_number_or_entity)
+	invalidate_next_scheduler_tick()
 	local group = get_group(group_name)
 	if not group then return end
 
@@ -530,11 +578,16 @@ local function remove_entity(group_name, unit_number_or_entity)
 		data.entity_count = math.max(0, data.entity_count - 1)
 	end
 
-	if group.delayed_entities[unit_number] then
+	local delayed = group.delayed_entities[unit_number]
+	if delayed then
 		group.delayed_entities[unit_number] = nil
 		data.delayed_count = math.max(0, data.delayed_count - 1)
-	end
 
+		if group.next_delayed_tick == delayed.tick then
+			rebuild_next_delayed_tick(group)
+		end
+	end
+	
 	if group.previous_key == unit_number then
 		group.previous_key = nil
 	end
@@ -547,6 +600,7 @@ local function remove_entity(group_name, unit_number_or_entity)
 end
 
 local function set_group_enabled(group_name, enabled)
+	invalidate_next_scheduler_tick()
 	local group = get_group(group_name)
 	if not group then return end
 
@@ -581,17 +635,10 @@ end
 
 local function notify_removed(group_name, group, unit_number, reason)
 	if not group.remove_callback then return end
-	if not callback_exists(group.interface, group.remove_callback) then return end
-
 	remote.call(group.interface, group.remove_callback, unit_number, group_name, reason)
 end
 
 local function call_group_callback(group_name, group, entries, tick)
-	if not callback_exists(group.interface, group.callback) then
-		group.enabled = false
-		return nil
-	end
-
 	return remote.call(group.interface, group.callback, entries, tick, group_name)
 end
 
@@ -634,39 +681,53 @@ end
 --------------------------------------------------------------------------------
 
 local function release_delayed_entities(group_name, group, tick)
-	if not next(group.delayed_entities) then return end
-
-	local data = get_data()
+	local next_delayed_tick
+	local released = 0
+	local activated = 0
 
 	for unit_number, delayed in pairs(group.delayed_entities) do
 		if delayed.tick <= tick then
 			group.delayed_entities[unit_number] = nil
-			data.delayed_count = math.max(0, data.delayed_count - 1)
-			
+			released = released + 1
+
 			local entity = delayed.entity
 
 			if entity and entity.valid then
-				-- Do not double-count if it was registered normally
-				-- while still waiting in the delayed table.
 				if not group.entities[unit_number] then
 					group.entities[unit_number] = {
 						entity = entity,
 						payload = delayed.payload
 					}
 
-					data.entity_count = data.entity_count + 1
+					activated = activated + 1
 				else
-					-- Update the existing entry with the latest values.
 					group.entities[unit_number] = {
 						entity = entity,
-						payload = delayed.payload,
-						next_check_tick = tick
+						payload = delayed.payload
 					}
 				end
-			else notify_removed(group_name, group, unit_number, "invalid-delayed")
+
+				wake_group(group, tick)
+			else
+				notify_removed(group_name, group, unit_number, "invalid-delayed")
 			end
-			wake_group(group, tick)
+		else
+			if not next_delayed_tick
+				or delayed.tick < next_delayed_tick then
+
+				next_delayed_tick = delayed.tick
+			end
 		end
+	end
+
+	group.next_delayed_tick = next_delayed_tick
+
+	if released > 0 then
+		data.delayed_count = math.max(0, data.delayed_count - released)
+	end
+
+	if activated > 0 then
+		data.entity_count = data.entity_count + activated
 	end
 end
 
@@ -743,35 +804,54 @@ end
 --------------------------------------------------------------------------------
 
 on_tick = function(event)
+	local tick = event.tick
+	if next_scheduler_tick and tick < next_scheduler_tick then
+		return
+	end
+	next_scheduler_tick = nil
+
 	-- Nothing active or delayed anywhere.
 	if data.entity_count == 0 and data.delayed_count == 0 then
 		disable_tick_if_idle()
 		return
 	end
 
+	local groups = data.groups
 	local order = data.group_order
 	local order_count = #order
+	local group_cursor = data.group_cursor
 
 	if order_count == 0 then
 		disable_tick_if_idle()
 		return
 	end
-	
+
 	-- If every active entry and delayed registration is scheduled for a
 	-- future tick, skip batch construction and remote callbacks entirely.
-	local next_work_tick = get_next_work_tick(event.tick)
+	local next_work_tick = get_next_work_tick(tick)
 
-	if not next_work_tick or next_work_tick > event.tick then return end
+	if not next_work_tick then
+		return
+	end
+
+	if next_work_tick > tick then
+		next_scheduler_tick = next_work_tick
+		return
+	end
 
 	-- Delayed entities must be released even when there are no active
 	-- entities. This runs once per group, not once per entity check.
 	if data.delayed_count > 0 then
 		for index = 1, order_count do
 			local group_name = order[index]
-			local group = data.groups[group_name]
+			local group = groups[group_name]
 
-			if group and group.enabled then
-				release_delayed_entities(group_name, group, event.tick)
+			if group
+				and group.enabled
+				and group.next_delayed_tick
+				and group.next_delayed_tick <= tick then
+
+				release_delayed_entities(group_name, group, tick)
 			end
 		end
 	end
@@ -797,16 +877,16 @@ on_tick = function(event)
 		local searched_groups = 0
 
 		while searched_groups < order_count do
-			if data.group_cursor > order_count then
-				data.group_cursor = 1
+			if group_cursor > order_count then
+				group_cursor = 1
 			end
 
-			local group_name = order[data.group_cursor]
+			local group_name = order[group_cursor]
 
-			data.group_cursor = data.group_cursor + 1
+			group_cursor = group_cursor + 1
 			searched_groups = searched_groups + 1
 
-			local group = data.groups[group_name]
+			local group = groups[group_name]
 
 			if group and group.enabled and not exhausted[group_name] then
 				local group_count =
@@ -822,19 +902,18 @@ on_tick = function(event)
 				else
 					local due = due_groups[group_name]
 					if due == nil then
-						due = group_is_due(group, event.tick)
+						due = group_is_due(group, tick)
 						due_groups[group_name] = due
 					end
 					if not due then
 						exhausted[group_name] = true
-					elseif not next(group.entities) then
-						group.previous_key = nil
-						group.pending_key = nil
-						finish_group_cycle(group)
-						exhausted[group_name] = true
 					else
-						begin_group_cycle(group, event.tick)
-						local processed, entry, reached_end = collect_one_entry(group_name, group)
+						local processed, entry, reached_end =
+							collect_one_entry(group_name, group)
+
+						if processed then
+							begin_group_cycle(group, tick)
+						end
 
 						if reached_end then
 							finish_group_cycle(group)
@@ -871,6 +950,8 @@ on_tick = function(event)
 		if not did_check then break end
 	end
 
+	data.group_cursor = group_cursor
+
 	----------------------------------------------------------------------
 	-- Call each participating mod once
 	----------------------------------------------------------------------
@@ -880,10 +961,10 @@ on_tick = function(event)
 		local entries = batches[group_name]
 
 		if entries and #entries > 0 then
-			local group = data.groups[group_name]
+			local group = groups[group_name]
 
 			if group and group.enabled then
-				local removals = call_group_callback(group_name, group, entries, event.tick)
+				local removals = call_group_callback(group_name, group, entries, tick)
 
 				apply_callback_removals(group_name, group, removals)
 			end

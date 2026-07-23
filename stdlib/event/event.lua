@@ -21,6 +21,7 @@ local Event = {
     __index = require('__kry_stdlib__/stdlib/core')
 }
 setmetatable(Event, Event)
+local event_registry = Event.registry
 
 local config = require('__kry_stdlib__/stdlib/config')
 config.control = true
@@ -165,8 +166,8 @@ function Event.register(event_id, handler, filter, pattern, options)
 
     -- If the event_id has never been registered before make sure we call the correct script action to register
     -- our Event handler with factorio
-    if not Event.registry[event_id] then
-        Event.registry[event_id] = {}
+    if not event_registry[event_id] then
+        event_registry[event_id] = {}
 
         if Type.String(event_id) then
             --String event ids will either be Bootstrap events or custom input events
@@ -184,7 +185,7 @@ function Event.register(event_id, handler, filter, pattern, options)
         end
     end
 
-    local registry = Event.registry[event_id]
+    local registry = event_registry[event_id]
 
     --If handler is already registered for this event: remove it for re-insertion at the end.
     if #registry > 0 then
@@ -282,7 +283,7 @@ function Event.remove(event_id, handler, filter, pattern)
 
         if found_something and table.size(registry) == 0 then
             -- Clear the registry data and un subscribe if there are no registered handlers left
-            Event.registry[event_id] = nil
+            event_registry[event_id] = nil
 
             if Type.String(event_id) then
                 -- String event ids will either be Bootstrap events or custom input events
@@ -358,22 +359,31 @@ function Event.register_if(truthy, id, ...)
 end
 Event.on_event_if = Event.register_if
 
--- Used to replace pcall in un-protected events.
-local function no_pcall(handler, ...)
-    return true, handler(...)
-end
-
 -- A dispatch helper function
 -- Call any filter and as applicable the event handler.
 -- protected errors are logged to game console if game is available, otherwise a real error
 -- is thrown. Bootstrap events are not protected from erroring no matter the option.
 local function dispatch_event(event, registered)
-    local success, match_result, handler_result
-    local protected = event.options.protected_mode
-    local pcall = not bootstrap_events[event.name] and protected and pcall or no_pcall
+    local match_result, handler_result
+    local protected = registered.options.protected_mode and not bootstrap_events[event.name]
 
-    -- If we have a filter run it first passing event, and registered.pattern as parameters
-    -- If the filter returns truthy call the handler passing event, and the result from the filter
+    -- fast default path; call handlers directly
+    if not protected then
+        -- If we have a filter run it first passing event, and registered.pattern as parameters
+        -- If the filter returns truthy call the handler passing event, and the result from the filter
+        if registered.filter then
+            match_result = registered.filter(event, registered.pattern)
+            if match_result then
+                handler_result = registered.handler(event, match_result)
+            end
+        else
+            handler_result = registered.handler(event, registered.pattern)
+        end
+        return handler_result
+    end
+
+    -- protected path
+    local success
     if registered.filter then
         success, match_result = pcall(registered.filter, event, registered.pattern)
         if success and match_result then
@@ -421,39 +431,42 @@ function Event.dispatch(event)
 
     --get the registered handlers from name, input_name, or nth_tick in that priority.
     local registry
+    local event_name = event.name
 
-    if event.name and Event.registry[event.name] then
-        registry = Event.registry[event.name]
-    elseif event.input_name and Event.registry[event.input_name] then
-        registry = Event.registry[event.input_name]
-    elseif event.nth_tick then
-        registry = Event.registry[-event.nth_tick]
+    if event_name then
+        registry = event_registry[event_name]
+    end
+
+    if not registry and event.input_name then
+        registry = event_registry[event.input_name]
+    elseif not registry and event.nth_tick then
+        registry = event_registry[-event.nth_tick]
     end
 
     if registry then
         --add the tick if it is not present, this only affects calling Event.dispatch manually
         --doing the check up here as it will faster than checking every iteration for a constant value
-        event.tick = event.tick or (game and game.tick) or 0
-        event.define_name = event_names[event.name or '']
-        event.options = event.options or {}
+        if event.tick == nil then
+            event.tick = (game and game.tick) or 0
+        end
 
         -- entity cloned is the only built event that does not return 'entity'
-        if event.name == defines.events.on_entity_cloned and event.destination then
+        if event.destination and event.name == defines.events.on_entity_cloned then
             event.entity = event.destination
         end
 		
-		-- built-in support for Even Pickier Dollies
-		if remote.interfaces["PickerDollies"] and event.moved_entity then
-			-- this line should only trigger on EPD events, which all contain moved_entity
+		-- built-in support for Even Pickier Dollies, which uses moved_entity
+		if event.moved_entity then
 			event.entity = event.moved_entity
 		end
+        for i = 1, #registry do
+            local registered = registry[i]
+            local options = registered.options
 
-        for _, registered in ipairs(registry) do
-            event.options = setmetatable(event.options, { __index = registered.options })
             -- Check for userdata and stop processing this and further handlers if not valid
             -- This is the same behavior as factorio events.
             -- This is done inside the loop as other events can modify the event.
-            if not event.options.skip_valid then
+            if not options.skip_valid then
                 for _, val in pairs(event) do
                     if type(val) == 'table' and val.__self and not val.valid then
                         return
@@ -465,8 +478,9 @@ function Event.dispatch(event)
             if dispatch_event(event, registered) == Event.stop_processing then
                 return
             end
+
             -- Force a crc check if option is enabled. This is a debug option and will hamper performance if enabled
-            if game and event.options.force_crc then
+            if options.force_crc and game then
                 log('CRC check called for event [' .. event.name .. ']')
                 game.force_crc()
             end

@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.9
+Date: July 22, 2026
+  Changes:
+    - Made several runtime optimizations by removing unnecessary calls and caching lookups locally.
+      Reduced time usage from the previous 0.120-0.500 down to 0.050-0.200, with default settings and thousands of placed entities using this functionality.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.8
 Date: July 21, 2026
   Bugfixes:
