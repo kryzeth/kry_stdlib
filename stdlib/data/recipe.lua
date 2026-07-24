@@ -1,4 +1,5 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
+local Tech = require('__kry_stdlib__/stdlib/data/technology')
 local Category = require('__kry_stdlib__/stdlib/data/category')
 
 --- Recipe class
@@ -300,8 +301,11 @@ end
 ---@return self
 function Recipe:add_unlock(tech_name)
     if self:is_valid() then
-        local Tech = require('__kry_stdlib__/stdlib/data/technology')
-        Tech.add_effect(self, tech_name) --self is passed as a valid recipe
+        local tech = Tech(tech_name)
+        if tech:is_valid() then
+            self:set_enabled(false)
+            tech:add_effect(self.name)
+        end
     end
     return self
 end
@@ -311,7 +315,6 @@ end
 ---@return self
 function Recipe:remove_unlock(tech_name)
     if self:is_valid('recipe') then
-        local Tech = require('__kry_stdlib__/stdlib/data/technology')
         Tech.remove_effect(self, tech_name, 'unlock-recipe')
     end
     return self
@@ -321,7 +324,6 @@ end
 ---@return table<string, true>? technologies
 function Recipe:get_technologies()
     if self:is_valid('recipe') then
-		local Tech = require('__kry_stdlib__/stdlib/data/technology')
 		local technologies = {}
 		-- for each technology, get list of unlocked recipes, check if this recipe is in list
 		for tech_name in pairs(data.raw.technology) do
