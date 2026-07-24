@@ -20,46 +20,44 @@ function Technology:__call(tech)
 end
 setmetatable(Technology, Technology)
 
---- Adds an effect to a technology or adds a recipe unlock to a technology.
----@param effect string|table Effect target name, wrapper, or list of technology names
----@param unlock_type? string Technology effect type; defaults to `"unlock-recipe"`
+--- Adds an effect to a technology.
+---@param effect string|number|boolean|table Effect target, modifier value, or complete effect definition
+---@param effect_type? string Technology effect type; defaults to `"unlock-recipe"`
 ---@return self
-function Technology:add_effect(effect, unlock_type)
-    assert(effect)
-
-    --todo fix for non recipe types
-    local add_unlock =
-    function(technology, name)
-        local effects = technology.effects
-        effects[#effects + 1] = {
-            type = unlock_type,
-            recipe = name
-        }
-    end
+function Technology:add_effect(effect, effect_type)
+    assert(effect ~= nil, 'effect must not be nil')
 
     if self:is_valid('technology') then
-        local Recipe = require('__kry_stdlib__/stdlib/data/recipe')
-        unlock_type = (not unlock_type and 'unlock-recipe') or unlock_type
-        local r_name = type(effect) == 'table' and effect.name or effect
-        if unlock_type == 'unlock-recipe' or not unlock_type then
-            if Recipe(effect):is_valid() then
-                add_unlock(self, r_name)
-            end
+        self.effects = self.effects or {}
+
+        -- Complete effect definition
+        if type(effect) == 'table' and effect.type then
+            table.insert(self.effects, effect)
+            return self
         end
-    elseif self:is_valid('recipe') then
-        ---@cast self StdLib.Data.Recipe
-        unlock_type = 'unlock-recipe'
-        -- Convert to array and return first valid tech
-        local techs = type(effect) == 'string' and { effect } or effect
-        ---@cast techs string[]
-        for _, name in pairs(techs) do
-            local tech = Technology(name)
-            if tech:is_valid('technology') then
-                self:set_enabled(false)
-                add_unlock(tech, self.name)
-                break
-            end
+
+        effect_type = effect_type or 'unlock-recipe'
+
+        local effect_fields = {
+            ['unlock-recipe'] = 'recipe',
+            ['unlock-space-location'] = 'space_location',
+            ['unlock-quality'] = 'quality',
+            ['give-item'] = 'item'
+        }
+
+        local new_effect = { type = effect_type }
+
+        if effect_type == 'nothing' then
+            new_effect.effect_description = effect
+        elseif type(effect) == 'table' then
+            new_effect = table.deepcopy(effect)
+            new_effect.type = effect_type
+        else
+            local field = effect_fields[effect_type] or 'modifier'
+            new_effect[field] = effect
         end
+
+        table.insert(self.effects, new_effect)
     end
 
     return self

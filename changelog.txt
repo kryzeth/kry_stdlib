@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.10
+Date: July 23, 2026
+  Minor Features:
+    - Allowed Technology:add_effect to actually work with with non-recipe-unlocks, via effect_type.
+    - Updated Recipe:add_unlock to utilize Technology:add_effect directly, instead of passing itself through.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.9
 Date: July 22, 2026
   Changes:
