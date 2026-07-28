@@ -47,10 +47,17 @@ end
 --- Gets the first item produced when this entity is mined.
 ---@return StdLib.Data.Item item
 function Entity:get_minable_item()
-    local Item = require('__kry_stdlib__/stdlib/data/item')
+    local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
     if self:is_valid() then
         local m = self.minable
-        return Item(m and (m.result or (m.results and m.results[1] and m.results[1].name)), nil, self.options)
+        local item_name = m and (m.result or (m.results and m.results[1] and m.results[1].name))
+        if item_name then
+            for _, item_type in pairs(groups.item) do
+                if data.raw[item_type] and data.raw[item_type][item_name] then
+                    return Item(item_name, item_type, self.options)
+                end
+            end
+        end
     end
     return Item()
 end
