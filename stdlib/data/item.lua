@@ -3,12 +3,28 @@ local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.
 
 --- Wrapper for Factorio item-like prototypes.
 ---@class StdLib.Data.Item : StdLib.Data
+---@field place_result? string
 local Item = {
     __class = 'Item',
     __index = Data,
     __call = Data.__call
 }
 setmetatable(Item, Item)
+
+--- Gets the entity placed by this item.
+---@return StdLib.Data.Entity entity
+function Item:get_place_result()
+    local Entity = require('__kry_stdlib__/stdlib/data/entity')
+    local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
+    if self:is_valid() and self.place_result then
+        for _, entity_type in pairs(groups.entity) do
+            if data.raw[entity_type] and data.raw[entity_type][self.place_result] then
+                return Entity(self.place_result, entity_type, self.options)
+            end
+        end
+    end
+    return Entity()
+end
 
 --- Converts a lab name or array of lab names to an array.
 --- Returns every lab prototype name when `params` is omitted.

@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.11
+Date: July 27, 2026
+  Bugfixes:
+    - Updated Entity:get_minable_item() to return the Item wrapper with the correct item prototype.
+  Minor Features:
+    - Added Item:get_place_result() to return the matching Entity wrapper, with correct entity prototype.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.10
 Date: July 23, 2026
   Minor Features:
