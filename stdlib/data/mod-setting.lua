@@ -1,10 +1,9 @@
 require('__kry_stdlib__/stdlib/core') -- Calling core up here to setup any required global stuffs
+local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
 
 if _G.remote and _G.script then
     error('Settings Module can only be required outside of the control stage', 2)
 end
-
-local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
 --- Wrapper for startup setting values and mod-setting prototypes.
 ---@class StdLib.Data.Setting
@@ -17,16 +16,6 @@ local Setting = {
 }
 setmetatable(Setting, Setting)
 
---- Supported mod-setting prototype types.
----@type string[]
-local setting_types = {
-    "bool-setting",
-    "int-setting",
-    "double-setting",
-    "string-setting",
-    "color-setting",
-}
-
 --- Finds a mod-setting prototype and its prototype type.
 ---@param name string Setting name
 ---@return table? prototype
@@ -34,7 +23,7 @@ local setting_types = {
 local function find_setting_prototype(name)
     if not data or not data.raw then return nil, nil end
 
-    for _, setting_type in pairs(setting_types) do
+    for _, setting_type in pairs(groups.setting) do
         local raw_type = data.raw[setting_type]
         if raw_type and raw_type[name] then
             return raw_type[name], setting_type
