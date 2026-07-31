@@ -52,6 +52,52 @@ local function log_trace(self, object, object_type)
     local trace = _ENV.data_traceback()
     log(msg .. trace)
 end
+
+--- Returns the locale namespace used by a prototype type.
+---@param prototype_type string
+---@return string locale_namespace
+local function get_locale_namespace(prototype_type)
+    if table.contains(groups.item, prototype_type) then
+        return "item"
+    elseif table.contains(groups.entity, prototype_type) then
+        return "entity"
+    elseif table.contains(groups.equipment, prototype_type) then
+        return "equipment"
+    elseif table.contains(groups.achievement, prototype_type) then
+        return "achievement"
+    elseif table.contains(groups.setting, prototype_type) then
+        return "mod-setting"
+    end
+
+    return prototype_type
+end
+
+--- Finds a prototype by name within a list of prototype types.
+---@param name string
+---@param types string[]
+---@return table? prototype
+local function find_prototype(name, types)
+    for _, prototype_type in pairs(types) do
+        local prototypes = data.raw[prototype_type]
+
+        if prototypes and prototypes[name] then
+            return prototypes[name]
+        end
+    end
+end
+
+--- Combines two LocalisedStrings with an optional separator.
+---@param first LocalisedString
+---@param second LocalisedString
+---@param separator? LocalisedString
+---@return LocalisedString
+local function merge_localised(first, second, separator)
+    if separator ~= nil then
+        return {"", first, separator, second}
+    end
+
+    return {"", first, second}
+end
 --)) END Local Functions ((--
 
 --(( METHODS ))--
@@ -625,6 +671,220 @@ function Data:set_icon_at(index, values)
     end
     return self
 end
+
+--- Gets the effective localised name of this prototype.
+--- Resolves prototype-specific inherited names, such as an item's placed
+--- entity or a recipe's main product, before falling back to its locale key.
+---@return LocalisedString?
+function Data:get_localised_name()
+    if not self:is_valid() then
+        return nil
+    end
+
+    -- Explicit localised names always take priority.
+    if self.localised_name then
+        local localised_name = self.localised_name
+        -- return as table or as simple string
+        if type(self.localised_name) == "table" then
+            ---@cast localised_name table
+            return table.deep_copy(localised_name)
+        else return self.localised_name
+        end
+    end
+
+    -- Recipes inherit the name of their explicit main product, or their
+    -- singular product when no main_product is specified.
+    if self.type == "recipe" then
+        ---@cast self StdLib.Data.Recipe
+        local product_name
+
+        if self.main_product and self.main_product ~= "" then
+            product_name = self.main_product
+
+        elseif self.main_product == nil
+            and self.results
+            and #self.results == 1
+        then
+            product_name = self.results[1].name or self.results[1][1]
+        end
+
+        if product_name then
+            local product = find_prototype(
+                product_name,
+                groups.item_and_fluid
+            )
+
+            if product then
+                return Data(product):get_localised_name()
+            end
+        end
+
+        return {"recipe-name." .. self.name}
+    end
+
+    -- Items which place entities use the entity's localised_name.
+    if table.contains(groups.item, self.type) then
+        ---@cast self StdLib.Data.Item
+        if self.place_result and self.place_result ~= "" then
+            local entity = find_prototype(
+                self.place_result,
+                groups.entity
+            )
+
+            if entity then
+                return Data(entity):get_localised_name()
+            end
+        end
+
+        -- Tile-placing items use the tile's localised_name.
+        if self.place_as_tile and self.place_as_tile.result then
+            local tile = data.raw.tile
+                and data.raw.tile[self.place_as_tile.result]
+
+            if tile then
+                return Data(tile):get_localised_name()
+            end
+        end
+
+        -- Equipment-placing items use the equipment's localised_name.
+        if self.place_as_equipment_result
+            and self.place_as_equipment_result ~= ""
+        then
+            local equipment = find_prototype(
+                self.place_as_equipment_result,
+                groups.equipment
+            )
+
+            if equipment then
+                return Data(equipment):get_localised_name()
+            end
+        end
+    end
+
+    -- Numbered technologies inherit the base technology's locale.
+    if self.type == "technology" then
+        local base_name = self.name:match("^(.-)%-%d+$")
+
+        if base_name then
+            return {"technology-name." .. base_name}
+        end
+    end
+
+    -- Otherwise use the standard locale key for this prototype family.
+    return {
+        get_locale_namespace(self.type) .. "-name." .. self.name
+    }
+end
+Data.get_localized_name = Data.get_localised_name
+
+--- Gets the effective localised description of this prototype.
+--- Explicit localised descriptions take priority. Otherwise returns the
+--- standard locale description with an empty fallback when none exists.
+---@return LocalisedString?
+function Data:get_localised_description()
+    if not self:is_valid() then
+        return nil
+    end
+
+    if self.localised_description then
+        
+        local localised_description = self.localised_description
+        -- return as table or as simple string
+        if type(self.localised_description) == "table" then
+            ---@cast localised_description table
+            return table.deep_copy(localised_description)
+        else return self.localised_description
+        end
+    end
+
+    return {
+        "?",
+        {
+            get_locale_namespace(self.type)
+                .. "-description."
+                .. self.name
+        },
+        ""
+    }
+end
+Data.get_localized_description = Data.get_localised_description
+
+--- Appends a LocalisedString to this prototype's effective localised name.
+---@param value LocalisedString Value to append
+---@param separator? LocalisedString Separator between the existing and appended names
+---@return self
+function Data:append_localised_name(value, separator)
+    assert(value ~= nil, "value is required")
+
+    if self:is_valid() then
+        self.localised_name = merge_localised(
+            assert(self:get_localised_name()),
+            value,
+            separator
+        )
+    end
+
+    return self
+end
+Data.append_localized_name = Data.append_localised_name
+
+
+--- Prepends a LocalisedString to this prototype's effective localised name.
+---@param value LocalisedString Value to prepend
+---@param separator? LocalisedString Separator between the prepended and existing names
+---@return self
+function Data:prepend_localised_name(value, separator)
+    assert(value ~= nil, "value is required")
+
+    if self:is_valid() then
+        self.localised_name = merge_localised(
+            value,
+            assert(self:get_localised_name()),
+            separator
+        )
+    end
+
+    return self
+end
+Data.prepend_localized_name = Data.prepend_localised_name
+
+--- Appends a LocalisedString to this prototype's effective localised description.
+---@param value LocalisedString Value to append
+---@param separator? LocalisedString Separator between the existing and appended descriptions
+---@return self
+function Data:append_localised_description(value, separator)
+    assert(value ~= nil, "value is required")
+
+    if self:is_valid() then
+        self.localised_description = merge_localised(
+            assert(self:get_localised_description()),
+            value,
+            separator
+        )
+    end
+
+    return self
+end
+Data.append_localized_description = Data.append_localised_description
+
+--- Prepends a LocalisedString to this prototype's effective localised description.
+---@param value LocalisedString Value to prepend
+---@param separator? LocalisedString Separator between the prepended and existing descriptions
+---@return self
+function Data:prepend_localised_description(value, separator)
+    assert(value ~= nil, "value is required")
+
+    if self:is_valid() then
+        self.localised_description = merge_localised(
+            value,
+            assert(self:get_localised_description()),
+            separator
+        )
+    end
+
+    return self
+end
+Data.prepend_localized_description = Data.prepend_localised_description
 
 --- Gets a printable `type/name` identifier for this wrapper.
 ---@return string identifier
