@@ -2,6 +2,7 @@ local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table')
 local Category = require('__kry_stdlib__/stdlib/data/category')
 local Item = require('__kry_stdlib__/stdlib/data/item')
+local Energy = require('__kry_stdlib__/stdlib/data/modules/energy')
 
 --- Entity class
 ---@class StdLib.Data.Entity : StdLib.Data
@@ -9,6 +10,8 @@ local Item = require('__kry_stdlib__/stdlib/data/item')
 ---@field inputs? StdLib.UniqueArray
 ---@field collision_mask? CollisionMaskConnector
 ---@field collision_box? BoundingBox
+---@field energy_source? EnergySource
+---@field Energy StdLib.Data.Energy
 local Entity = {
     __class = 'Entity',
     __index = Data,
@@ -42,6 +45,25 @@ local function is_crafting_machine(entity)
 	return entity:is_valid('assembling-machine')
 		or entity:is_valid('rocket-silo')
 		or entity:is_valid('furnace')
+end
+
+--- Scales an energy-valued field inside a table.
+---@param parent table
+---@param field string
+---@param scalar number
+---@param description string
+local function scale_energy_field(parent, field, scalar, description)
+    local energy = parent[field]
+	-- ensure this field contains a string before attempting to modify
+    assert(type(energy) == "string",
+        description .. "." .. field .. " is not an energy string")
+
+    local scaled_energy = Energy.scale(energy, scalar)
+	-- ensure we receive a valid scaled energy string before assigning it
+    assert(scaled_energy,
+        description .. "." .. field .. " is not a valid energy string")
+
+    parent[field] = scaled_energy
 end
 
 --- Gets the first item produced when this entity is mined.
@@ -97,6 +119,40 @@ function Entity:change_lab_inputs(name, add)
     else
         log('Entity is not a lab.' .. _ENV.data_traceback())
     end
+    return self
+end
+
+--- Multiplies a top-level energy-valued field.
+---@param field string
+---@param scalar number
+---@return self
+function Entity:scale_energy(field, scalar)
+    assert(type(field) == "string", "field must be a string")
+
+    if self:is_valid() then
+        scale_energy_field(self, field, scalar, self:tostring())
+    end
+
+    return self
+end
+
+--- Multiplies an energy-valued field inside the entity's energy source.
+---@param field string
+---@param scalar number
+---@return self
+function Entity:scale_energy_source(field, scalar)
+    assert(type(field) == "string", "field must be a string")
+
+    if self:is_valid() then
+        local energy_source = self.energy_source
+
+        assert(type(energy_source) == "table",
+            self:tostring() .. ".energy_source is not a table")
+
+        scale_energy_field(energy_source, field, scalar,
+            self:tostring() .. ".energy_source")
+    end
+
     return self
 end
 

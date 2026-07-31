@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.12
+Date: July 30, 2026
+  Minor Features:
+    - Added Data:get_localised_name/description to retrieve the field that would be used for this prototype.
+      Recipe inherits from main_product if defined, items inherit from place_result.
+    - Added Data:append/prepend_localised_name/description to modify localised_name and description.
+    - Added Energy module to work with Energy values (i.e. "150kW" and "5MJ").
+      Energy.scale should be the most useful; scales up/down any Energy value by a given scalar.
+    - Added Entity:scale_energy and scale_energy_source to scale top-level fields and nested energy_source fields respectively.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.11
 Date: July 27, 2026
   Bugfixes:

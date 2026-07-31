@@ -4,6 +4,8 @@ local Category = require('__kry_stdlib__/stdlib/data/category')
 
 --- Recipe class
 ---@class StdLib.Data.Recipe : StdLib.Data
+---@field main_product? string
+---@field results? Product[]
 local Recipe = {
     __class = 'Recipe',
     __index = Data,

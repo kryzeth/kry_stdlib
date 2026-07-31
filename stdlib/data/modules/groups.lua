@@ -54,6 +54,14 @@ groups.signal = {
     'virtual-signal'
 }
 
+groups.setting = {
+    'bool-setting',
+    'int-setting',
+    'double-setting',
+    'string-setting',
+    'color-setting',
+}
+
 groups.achievement = {
     'achievement',
     'build-entity-achievement',

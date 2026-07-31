@@ -4,6 +4,8 @@ local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.
 --- Wrapper for Factorio item-like prototypes.
 ---@class StdLib.Data.Item : StdLib.Data
 ---@field place_result? string
+---@field place_as_tile? PlaceAsTile
+---@field place_as_equipment_result? string
 local Item = {
     __class = 'Item',
     __index = Data,
