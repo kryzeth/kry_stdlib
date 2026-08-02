@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.13
+Date: August 2, 2026
+  Bugfixes:
+    - Fixed Entity/Inventory.is_named_bp function, regarding nil comparison with named blueprints.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.12
 Date: July 30, 2026
   Minor Features:
