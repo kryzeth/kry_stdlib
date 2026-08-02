@@ -99,12 +99,17 @@ function Inventory.get_blueprint(stack, is_bp_setup, no_book)
     end
 end
 
---- Is the stack a blueprint with label?
+--- Is the stack a blueprint whose label begins with the specified text?
 ---@param stack LuaItemStack
 ---@param label string
 ---@return boolean
 function Inventory.is_named_bp(stack, label)
-    return stack and stack.valid_for_read and stack.is_blueprint and stack.label and stack.label:find('^' .. label)>0 or false
+    -- ensure item stack contains a blueprint before attempt to grab label
+    if not (stack and stack.valid_for_read and stack.is_blueprint) then return false end
+    -- ensure blueprint label is valid string, then attempt to match specified text at its beginning
+    local blueprint_label = stack.label
+    -- the ending == 1 bit is important to ensure we return false instead of nil when there is no match
+    return type(blueprint_label) == 'string' and blueprint_label:find(label, 1, true) == 1
 end
 
 --- Returns either the item at a position, or the filter at the position if there isn't an item there.
