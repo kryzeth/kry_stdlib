@@ -36,6 +36,7 @@ local ignored_fields_for_rescale ={
     "fluid_box",
     "energy_source",
     "input_fluid_box",
+    "output_fluid_box",
 }
 
 -- check if given entity is a valid CraftingMachinePrototype
@@ -228,6 +229,52 @@ function Entity:remove_categories(category_list)
 	return self
 end
 
+local function rescale_connection_cover_sprite(sprite, scale, shift_x, shift_y)
+	if not sprite then return end
+
+	-- layered sprite
+	if sprite.layers then
+		for _, layer in pairs(sprite.layers) do
+			rescale_connection_cover_sprite(layer, scale, shift_x, shift_y)
+		end
+		return
+	end
+
+	-- sprite render scale
+	if sprite.filename then
+		sprite.scale = (sprite.scale or 1) * scale
+	end
+
+	-- preserve and rescale any existing shift
+	local shift = sprite.shift and Table.scale(sprite.shift, scale) or {0, 0}
+
+	-- add directional compensation
+	shift[1] = (shift[1] or 0) + shift_x
+	shift[2] = (shift[2] or 0) + shift_y
+
+	sprite.shift = shift
+end
+
+--- Rescales directional pipe/heat connection cover graphics.
+--- Also shifts each directional graphic to compensate for the change in scale.
+---@param covers Sprite4Way
+---@param scale number Scale factor
+---@return self
+function Entity:rescale_connection_covers(covers, scale)
+	assert(type(covers) == "table", "covers must be a table")
+	assert(type(scale) == "number", "scale must be a number")
+
+	-- compensate for the change to the implicit half-tile directional offset
+	local shift = scale
+
+	rescale_connection_cover_sprite(covers.north, scale, 0, shift)
+	rescale_connection_cover_sprite(covers.east,  scale, -shift, 0)
+	rescale_connection_cover_sprite(covers.south, scale, 0, -shift)
+	rescale_connection_cover_sprite(covers.west,  scale, shift, 0)
+
+	return self
+end
+
 -- circuit_connector tables cannot be treated blindly
 ---@param connector table Circuit connector definition to modify
 ---@param scale number Scale factor
@@ -352,6 +399,19 @@ local function rescale_entity(entity, scale, squeak, shrink_value)
         -- Label to skip to next iteration
         ::continue::
     end
+end
+
+--- Rescales a nested graphical/spatial table in place.
+---@param graphics table Graphics table to modify
+---@param scale number Scale factor
+---@return self
+function Entity:rescale_graphics(graphics, scale)
+	assert(type(graphics) == "table", "graphics must be a table")
+	assert(type(scale) == "number", "scale must be a number")
+
+	rescale_entity(graphics, scale)
+
+	return self
 end
 
 --- Rescales this entity's graphical and spatial properties in place.

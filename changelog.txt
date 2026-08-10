@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.14
+Date: August 9, 2026
+  Changes:
+    - Added output_fluid_box to list of ignored rescale_entity fields.
+    - Added Entity:rescale_connection_covers(covers, scale) to rescale fluid pipe and heat pipe covers.
+    - Added Entity:rescale_graphics(graphics, scale) to rescale specific fields within an entity.
+      This was needed to rescale heat_pictures within energy_source without rescaling other fields.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.13
 Date: August 2, 2026
   Bugfixes:
