@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.16
+Date: August 30, 2026
+  Bugfixes:
+    - Had another look at how PlanetsLib works, and needed to change some assumptions made with the previous functionality.
+      Specifically fixes the new functions when orbit table is defined, but then subsequently ignored by PlanetsLib.
+      When parent is star, uses distance to update distance and orbit.distance; otherwise uses orbit.distance.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.15
 Date: August 29, 2026
   Minor Features:

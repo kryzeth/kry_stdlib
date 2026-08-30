@@ -40,12 +40,22 @@ local function assert_planet_location(object, method)
 	)
 end
 
+--- Returns whether this location has a relative orbit around another location.
+---@param object StdLib.Data.Space
+---@return boolean
+local function has_parent_orbit(object)
+	local parent = object.orbit and object.orbit.parent
+
+	return parent
+		and not (parent.type == "space-location" and parent.name == "star")
+		or false
+end
+
 --- Returns the effective distance field for a location.
---- Uses orbit.distance when an orbit exists, otherwise base distance field.
 ---@param object StdLib.Data.Space
 ---@return number
 local function get_distance(object)
-	if object.orbit then
+	if has_parent_orbit(object) then
 		return object.orbit.distance
 	end
 
@@ -53,18 +63,17 @@ local function get_distance(object)
 end
 
 --- Returns the effective orientation field for a location.
---- Uses orbit.orientation when an orbit exists, otherwise base orientation field.
 ---@param object StdLib.Data.Space
 ---@return number
 local function get_orientation(object)
-	if object.orbit then
+	if has_parent_orbit(object) then
 		return object.orbit.orientation
 	end
 
 	return object.orientation
 end
 
---- Shotrhand to update planet or location orbit via PlanetsLib.
+--- Shorthand to update planet or location orbit via PlanetsLib.
 ---@param object StdLib.Data.Space
 ---@param orbit StdLib.Data.Orbit
 ---@return self
@@ -272,7 +281,7 @@ end
 -- PlanetsLib orbit functions
 -- ----------------------------
 --- Sets this location's distance.
---- Updates orbit.distance through PlanetsLib when an orbit exists.
+--- Updates orbit.distance through PlanetsLib when a valid orbit exists.
 ---@param distance number
 ---@return self
 function Space:set_distance(distance)
@@ -281,7 +290,16 @@ function Space:set_distance(distance)
 
 	if self.orbit then
 		local orbit = table.deepcopy(self.orbit)
-		orbit.distance = distance
+
+		if has_parent_orbit(self) then
+			orbit.distance = distance
+		else
+			-- Star-parent orbits mirror the normal starmap position.
+			self.distance = distance
+			orbit.distance = distance
+			orbit.orientation = self.orientation
+		end
+
 		return update_orbit(self, orbit)
 	end
 
@@ -315,7 +333,7 @@ end
 
 
 --- Sets this location's orientation.
---- Updates orbit.orientation through PlanetsLib when an orbit exists.
+--- Updates orbit.orientation through PlanetsLib when a valid orbit exists.
 ---@param orientation number
 ---@return self
 function Space:set_orientation(orientation)
@@ -324,14 +342,22 @@ function Space:set_orientation(orientation)
 
 	if self.orbit then
 		local orbit = table.deepcopy(self.orbit)
-		orbit.orientation = orientation
+
+		if has_parent_orbit(self) then
+			orbit.orientation = orientation
+		else
+			-- Star-parent orbits mirror the normal starmap position.
+			self.orientation = orientation
+			orbit.distance = self.distance
+			orbit.orientation = orientation
+		end
+
 		return update_orbit(self, orbit)
 	end
 
 	self.orientation = orientation
 	return self
 end
-
 
 --- Sets this location's distance and orientation fields simultaneously.
 ---@param distance number
@@ -344,6 +370,12 @@ function Space:set_position(distance, orientation)
 
 	if self.orbit then
 		local orbit = table.deepcopy(self.orbit)
+
+		if not has_parent_orbit(self) then
+			self.distance = distance
+			self.orientation = orientation
+		end
+
 		orbit.distance = distance
 		orbit.orientation = orientation
 		return update_orbit(self, orbit)
@@ -354,7 +386,6 @@ function Space:set_position(distance, orientation)
 
 	return self
 end
-
 
 --- Copies another location's effective distance and orientation.
 --- Source and destination independently use orbit fields or base fields.
