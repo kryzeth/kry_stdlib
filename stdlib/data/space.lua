@@ -1,10 +1,17 @@
-
 local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
---- Wrapper for planet, space-connection, and space-location prototypes.
+--- Field added by PlanetsLib that is generally used for moon orbits
+---@class StdLib.Data.Orbit
+---@field parent {type:string, name:string}
+---@field distance number
+---@field orientation number
+--- Wrapper for planet, space-connection, and space-location prototypes. 
 ---@class StdLib.Data.Space : StdLib.Data
 ---@field asteroid_spawn_definitions? table[]
+---@field distance? number
+---@field orientation? number
+---@field orbit? StdLib.Data.Orbit
 local Space = {
     __class = 'Space',
     __index = Data,
@@ -15,6 +22,62 @@ setmetatable(Space, Space)
 -- ----------------------------
 -- Internal helpers
 -- ----------------------------
+--- Ensures this function is only used on planet or space location.
+---@param object StdLib.Data.Space
+---@param method string
+local function assert_planet_location(object, method)
+	assert(
+		mods["PlanetsLib"],
+		method .. "() requires PlanetsLib. Please add a requirement to this mod before using this function"
+	)
+	assert(
+		PlanetsLib and PlanetsLib.current_stage ~= "data-final-fixes",
+		method .. "() cannot be used during data-final-fixes"
+	)
+	assert(
+		object:is_valid("planet") or object:is_valid("space-location"),
+		method .. "() can only be used on planet or space-location prototypes"
+	)
+end
+
+--- Returns the effective distance field for a location.
+--- Uses orbit.distance when an orbit exists, otherwise base distance field.
+---@param object StdLib.Data.Space
+---@return number
+local function get_distance(object)
+	if object.orbit then
+		return object.orbit.distance
+	end
+
+	return object.distance
+end
+
+--- Returns the effective orientation field for a location.
+--- Uses orbit.orientation when an orbit exists, otherwise base orientation field.
+---@param object StdLib.Data.Space
+---@return number
+local function get_orientation(object)
+	if object.orbit then
+		return object.orbit.orientation
+	end
+
+	return object.orientation
+end
+
+--- Shotrhand to update planet or location orbit via PlanetsLib.
+---@param object StdLib.Data.Space
+---@param orbit StdLib.Data.Orbit
+---@return self
+local function update_orbit(object, orbit)
+	PlanetsLib:update({
+		type = object.type,
+		name = object.name,
+		orbit = orbit,
+	})
+
+	return object
+end
+
 --- Removes the first matching asteroid spawn definition.
 ---@param asteroid_spawn_definitions table[] Asteroid spawn definitions
 ---@param name string Asteroid prototype name
@@ -203,6 +266,108 @@ local function generate_connection_asteroids(origin, destination)
     end
 
     return(merged)
+end
+
+-- ----------------------------
+-- PlanetsLib orbit functions
+-- ----------------------------
+--- Sets this location's distance.
+--- Updates orbit.distance through PlanetsLib when an orbit exists.
+---@param distance number
+---@return self
+function Space:set_distance(distance)
+	assert(type(distance) == "number", "distance must be a number")
+	assert_planet_location(self, "set_distance")
+
+	if self.orbit then
+		local orbit = table.deepcopy(self.orbit)
+		orbit.distance = distance
+		return update_orbit(self, orbit)
+	end
+
+	self.distance = distance
+	return self
+end
+
+
+--- Adds a value to this location's current distance.
+--- Uses orbit.distance when an orbit exists, otherwise the base distance field.
+---@param delta number
+---@return self
+function Space:update_distance(delta)
+	assert(type(delta) == "number", "delta must be a number")
+	assert_planet_location(self, "update_distance")
+
+	return self:set_distance(get_distance(self) + delta)
+end
+
+
+--- Copies another location's effective distance to this location.
+--- The source and destination independently use orbit.distance or distance.
+---@param other StdLib.Data.Space
+---@return self
+function Space:copy_distance(other)
+	assert_planet_location(self, "copy_distance")
+	assert_planet_location(other, "copy_distance")
+
+	return self:set_distance(get_distance(other))
+end
+
+
+--- Sets this location's orientation.
+--- Updates orbit.orientation through PlanetsLib when an orbit exists.
+---@param orientation number
+---@return self
+function Space:set_orientation(orientation)
+	assert(type(orientation) == "number", "orientation must be a number")
+	assert_planet_location(self, "set_orientation")
+
+	if self.orbit then
+		local orbit = table.deepcopy(self.orbit)
+		orbit.orientation = orientation
+		return update_orbit(self, orbit)
+	end
+
+	self.orientation = orientation
+	return self
+end
+
+
+--- Sets this location's distance and orientation fields simultaneously.
+---@param distance number
+---@param orientation number
+---@return self
+function Space:set_position(distance, orientation)
+	assert(type(distance) == "number", "distance must be a number")
+	assert(type(orientation) == "number", "orientation must be a number")
+	assert_planet_location(self, "set_position")
+
+	if self.orbit then
+		local orbit = table.deepcopy(self.orbit)
+		orbit.distance = distance
+		orbit.orientation = orientation
+		return update_orbit(self, orbit)
+	end
+
+	self.distance = distance
+	self.orientation = orientation
+
+	return self
+end
+
+
+--- Copies another location's effective distance and orientation.
+--- Source and destination independently use orbit fields or base fields.
+---@param other StdLib.Data.Space
+---@return self
+function Space:copy_position(other)
+	assert_planet_location(self, "copy_position")
+	assert_planet_location(other, "copy_position")
+
+	return self:set_position(
+		get_distance(other),
+		get_orientation(other)
+	)
 end
 
 -- ----------------------------
