@@ -96,6 +96,21 @@ function Technology:remove_effect(tech_name, unlock_type, name)
     return self
 end
 
+--- Checks whether this technology contains a science pack.
+---@param pack string Science-pack item name
+---@return boolean has_pack
+---@return integer? index
+function Technology:has_pack(pack)
+    if self:is_valid('technology') and self.unit then
+        for i, ing in pairs(self.unit.ingredients or {}) do
+            if ing[1] == pack then
+                return true, i
+            end
+        end
+    end
+    return false
+end
+
 --- Adds a science pack to this technology's research ingredients.
 ---@param new_pack string|table Science-pack name or `{name, count}` pair
 ---@param count? number Ingredient count; defaults to `1`
@@ -111,11 +126,16 @@ function Technology:add_pack(new_pack, count)
         else
             error('new_pack must be a table or string')
         end
-
-        if Item(new_pack):is_valid() then
+        -- check if science pack is valid, and not already used in technology
+        if not self.unit then   -- empty unit field
+            log(self.name .. ' has no science cost to modify.')
+        elseif not Item(new_pack):is_valid() then   -- invalid science pack
+            log(new_pack .. ' is not a valid science pack.')
+        elseif self:has_pack(new_pack) then -- duplicate science pack
+            log(self.name .. ' already contains ' .. new_pack .. '.')
+        else
             self.unit.ingredients = self.unit.ingredients or {}
-            local ing = self.unit.ingredients
-            ing[#ing + 1] = { new_pack, count }
+            self.unit.ingredients[#self.unit.ingredients + 1] = { new_pack, count }
         end
     end
     return self
@@ -126,12 +146,10 @@ end
 ---@return self
 function Technology:remove_pack(pack)
     if self:is_valid('technology') then
-        local ings = self.unit.ingredients
-        for i, ing in pairs(ings or {}) do
-            if ing[1] == pack then
-                table.remove(ings, i)
-                break
-            end
+        -- check for index of science pack, then remove that index
+        local _, index = self:has_pack(pack)
+        if index then
+            table.remove(self.unit.ingredients, index)
         end
     end
     return self
@@ -144,17 +162,49 @@ end
 ---@return self
 function Technology:replace_pack(old_pack, new_pack, count)
     if self:is_valid('technology') then
-        local ings = self.unit.ingredients
-        for i, ing in pairs(ings or {}) do
-            if ing[1] == old_pack then
+        local Item = require('__kry_stdlib__/stdlib/data/item')
+        if not self.unit then
+            log(self.name .. ' has no science cost to modify.') -- empty unit field
+        elseif not Item(new_pack):is_valid() then
+            log(new_pack .. ' is not a valid science pack.')    -- invalid new_pack
+        else
+            local _, index = self:has_pack(old_pack)
+            -- check for index of old_pack, then replace the values for that index
+            if not index then
+                log(self.name .. ' does not contain ' .. old_pack .. '.')   -- missing old_pack
+            elseif old_pack ~= new_pack and self:has_pack(new_pack) then
+                log(self.name .. ' already contains ' .. new_pack .. '.')   -- duplicate new_pack
+            else
+                local ing = self.unit.ingredients[index]
                 ing[1] = new_pack
                 ing[2] = count or ing[2] or 1
-                break
             end
         end
     end
     return self
 end
+
+--- Sets the amount of an existing science pack.
+---@param pack string Science-pack item name
+---@param count number New ingredient count
+---@return self
+function Technology:set_pack_count(pack, count)
+    if self:is_valid('technology') then
+        if not self.unit then
+            log(self.name .. ' has no science cost to modify.') -- empty unit field
+        else
+            local _, index = self:has_pack(pack)
+            -- check for index of science pack, then adjust the count for that index
+            if not index then
+                log(self.name .. ' does not contain ' .. pack .. '.') -- missing science pack
+            else
+                self.unit.ingredients[index][2] = count
+            end
+        end
+    end
+    return self
+end
+Technology.set_pack_amount = Technology.set_pack_count
 
 --- Adds a prerequisite technology.
 ---@param tech_name string Prerequisite technology name
