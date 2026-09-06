@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.17
+Date: September 6, 2026
+  Minor Features:
+    - Added Technology:has_pack(pack) and Technology:set_pack_count(pack, count).
+  Changes:
+    - Updated Technology:add_pack/remove_pack/replace_pack to use has_pack.
+      Also added more specific logging for when these Technology functions make no changes.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.16
 Date: August 30, 2026
   Bugfixes:
