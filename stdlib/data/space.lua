@@ -13,27 +13,46 @@ local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.
 ---@field orientation? number
 ---@field orbit? StdLib.Data.Orbit
 local Space = {
-    __class = 'Space',
-    __index = Data,
-    __call = Data.__call
+	__class = 'Space',
+	__index = Data
 }
 setmetatable(Space, Space)
 
 -- ----------------------------
 -- Internal helpers
 -- ----------------------------
+--- Wraps or creates a space prototype. Overrides the standard Data:get function.
+--- Planets and space locations with orbit tables are extended via PlanetsLib interface.
+---@param object string|table
+---@param object_type? string
+---@param opts? table<string, boolean>
+---@return self
+function Space:get(object, object_type, opts)
+	local options = opts or self.options
+	-- planets and space locations with orbit tables are extended via PlanetsLib
+	if type(object) == "table" and object.orbit
+		and (object.type == "planet" or object.type == "space-location")
+		and not (options and options.extend == false)
+	then
+		assert(mods["PlanetsLib"] and PlanetsLib,
+			"Cannot extend this orbit-based prototype without PlanetsLib enabled:" .. serpent.block(object)
+		)
+		-- strip the standard distance/orientation fields for use with PlanetsLib
+		object.distance = nil
+		object.orientation = nil
+
+		PlanetsLib:extend(object)
+		return Data.get(self, object.name, object.type, opts)
+	end
+
+	return Data.get(self, object, object_type, opts)
+end
+Space.__call = Space.get
+
 --- Ensures this function is only used on planet or space location.
 ---@param object StdLib.Data.Space
 ---@param method string
 local function assert_planet_location(object, method)
-	assert(
-		mods["PlanetsLib"],
-		method .. "() requires PlanetsLib. Please add a requirement to this mod before using this function"
-	)
-	assert(
-		PlanetsLib and PlanetsLib.current_stage ~= "data-final-fixes",
-		method .. "() cannot be used during data-final-fixes"
-	)
 	assert(
 		object:is_valid("planet") or object:is_valid("space-location"),
 		method .. "() can only be used on planet or space-location prototypes"
@@ -78,11 +97,21 @@ end
 ---@param orbit StdLib.Data.Orbit
 ---@return self
 local function update_orbit(object, orbit)
-	PlanetsLib:update({
-		type = object.type,
-		name = object.name,
-		orbit = orbit,
-	})
+	assert(mods["PlanetsLib"] and PlanetsLib,
+		"Cannot update this orbit-based prototype without PlanetsLib enabled")
+	if PlanetsLib.current_stage == "data-final-fixes" then
+		-- runs through the same modifications that PlanetsLib:update would do
+		local orbits = require("__PlanetsLib__/lib/orbits")
+		object.orbit = orbit
+		object.distance, object.orientation = orbits.get_absolute_polar_position_from_orbit(orbit)
+		orbits.update_positions_of_all_children_via_orbits(object)
+	else
+		PlanetsLib:update({
+			type = object.type,
+			name = object.name,
+			orbit = orbit,
+		})
+	end
 
 	return object
 end
@@ -278,10 +307,10 @@ local function generate_connection_asteroids(origin, destination)
 end
 
 -- ----------------------------
--- PlanetsLib orbit functions
+-- Space positional functions
 -- ----------------------------
 --- Sets this location's distance.
---- Updates orbit.distance through PlanetsLib when a valid orbit exists.
+--- Updates orbit.distance when an orbit exists.
 ---@param distance number
 ---@return self
 function Space:set_distance(distance)
@@ -307,9 +336,8 @@ function Space:set_distance(distance)
 	return self
 end
 
-
 --- Adds a value to this location's current distance.
---- Uses orbit.distance when an orbit exists, otherwise the base distance field.
+--- Uses orbit.distance when an orbit exists, otherwise uses the base distance field.
 ---@param delta number
 ---@return self
 function Space:update_distance(delta)
@@ -318,7 +346,6 @@ function Space:update_distance(delta)
 
 	return self:set_distance(get_distance(self) + delta)
 end
-
 
 --- Copies another location's effective distance to this location.
 --- The source and destination independently use orbit.distance or distance.
@@ -330,7 +357,6 @@ function Space:copy_distance(other)
 
 	return self:set_distance(get_distance(other))
 end
-
 
 --- Sets this location's orientation.
 --- Updates orbit.orientation through PlanetsLib when a valid orbit exists.
