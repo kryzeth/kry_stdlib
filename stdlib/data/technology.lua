@@ -212,15 +212,14 @@ Technology.set_pack_amount = Technology.set_pack_count
 function Technology:add_prereq(tech_name)
     if self:is_valid('technology') and Technology(tech_name):is_valid() then
         self.prerequisites = self.prerequisites or {}
-        ---@type string[]
-        local pre = self.prerequisites
-        for _, existing in pairs(pre) do
+        for _, existing in pairs(self.prerequisites) do
             if existing == tech_name then
+                log('Prereq tech not added, '..tech_name.." is already a prereq for "..self.name)
                 return self
             end
         end
 
-        pre[#pre + 1] = tech_name
+        table.insert(self.prerequisites, tech_name)
     end
     return self
 end

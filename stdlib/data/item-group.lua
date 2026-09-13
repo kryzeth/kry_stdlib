@@ -39,4 +39,22 @@ end
 ItemGroup.get_row_count = ItemGroup.count_rows
 ItemGroup.count_group_rows = ItemGroup.count_rows
 
+--- Counts rows used by visible items that place one of the given entity types.
+---@param entity_types string[] Entity prototype types
+---@return integer? rows
+function ItemGroup:count_placeable_rows(entity_types)
+    if self:is_valid('item-group') then
+        local ItemSubgroup = require('__kry_stdlib__/stdlib/data/item-subgroup')
+        local rows = 0
+
+        for _, subgroup in pairs(data.raw['item-subgroup'] or {}) do
+            if subgroup.group == self.name then
+                rows = rows + ItemSubgroup(subgroup.name):count_placeable_rows(entity_types)
+            end
+        end
+
+        return rows
+    end
+end
+
 return ItemGroup
