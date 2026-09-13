@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.19
+Date: September 12, 2026
+  Minor Features:
+    - Added ItemSubgroup:count_placeable_entries(entity_types) and count_placeable_rows(entity_types)
+    - Added ItemGroup:count_placeable_rows(entity_types)
+---------------------------------------------------------------------------------------------------
 Version: 2.2.18
 Date: September 8, 2026
   Changes:

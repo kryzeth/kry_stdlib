@@ -57,6 +57,23 @@ local function count_visible_subgroup_entries(subgroup_name)
     return count
 end
 
+--- Returns whether an item places one of the given entity types.
+---@param prototype table Item prototype to inspect
+---@param entity_types string[] Entity prototype types
+---@return boolean
+local function places_entity_type(prototype, entity_types)
+    local place_result = prototype.place_result
+    if not place_result then return false end
+
+    for _, type_name in pairs(entity_types) do
+        if data.raw[type_name] and data.raw[type_name][place_result] then
+            return true
+        end
+    end
+
+    return false
+end
+
 --- Counts the number of visible entries in this subgroup.
 --- Hidden prototypes and Factoriopedia-hidden prototypes are ignored.
 --- Prototypes with duplicate internal names are only counted once.
@@ -86,5 +103,46 @@ function ItemSubgroup:count_rows()
 end
 ItemSubgroup.get_row_count = ItemSubgroup.count_rows
 ItemSubgroup.count_subgroup_rows = ItemSubgroup.count_rows
+
+--- Counts visible items in this subgroup that place one of the given entity types.
+---@param entity_types string[] Entity prototype types
+---@return integer? count
+function ItemSubgroup:count_placeable_entries(entity_types)
+    if self:is_valid('item-subgroup') then
+        local count = 0
+        local counted_names = {}
+
+        for _, type_name in pairs(Groups.item) do
+            for name, prototype in pairs(data.raw[type_name] or {}) do
+                if prototype.subgroup == self.name
+                    and not is_hidden(prototype)
+                    and not counted_names[name]
+                    and places_entity_type(prototype, entity_types)
+                then
+                    counted_names[name] = true
+                    count = count + 1
+                end
+            end
+        end
+
+        return count
+    end
+end
+
+--- Counts rows used by visible items that place one of the given entity types.
+---@param entity_types string[] Entity prototype types
+---@return integer? rows
+function ItemSubgroup:count_placeable_rows(entity_types)
+    if self:is_valid('item-subgroup') then
+        local count = self:count_placeable_entries(entity_types)
+        ---@cast count integer
+
+        if count <= 0 then
+            return 0
+        end
+
+        return math.ceil(count / 10)
+    end
+end
 
 return ItemSubgroup
