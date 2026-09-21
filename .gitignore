@@ -11,6 +11,8 @@ stdlib-docs/
 .vscode/
 
 # Exclude the output directory
+output/
+build/
 .output/
 .build/
 
