@@ -4,7 +4,7 @@ local Category = require('__kry_stdlib__/stdlib/data/category')
 local Item = require('__kry_stdlib__/stdlib/data/item')
 local Energy = require('__kry_stdlib__/stdlib/data/modules/energy')
 
---- Entity class
+--- Wrapper for Factorio entity prototypes.
 ---@class StdLib.Data.Entity : StdLib.Data
 ---@field minable MinableProperties (AssemblingMachinePrototype and many others)
 ---@field inputs? StdLib.UniqueArray

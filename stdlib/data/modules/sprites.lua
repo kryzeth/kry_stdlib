@@ -1,4 +1,4 @@
---- Sprites
+--- Utilities for constructing common sprite definitions.
 ---@class StdLib.Data.Sprites
 local Sprites = {}
 

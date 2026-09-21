@@ -1,4 +1,4 @@
---- Data Utilities
+--- General data-stage prototype utilities.
 ---@class StdLib.Data.Util : StdLib.Core
 local Util = {
     __class = 'Util',

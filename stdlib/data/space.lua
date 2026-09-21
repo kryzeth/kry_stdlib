@@ -1,17 +1,18 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 
---- Field added by PlanetsLib that is generally used for moon orbits
+--- Relative orbit definition used by PlanetsLib.
 ---@class StdLib.Data.Orbit
----@field parent {type:string, name:string}
----@field distance number
----@field orientation number
---- Wrapper for planet, space-connection, and space-location prototypes. 
+---@field parent {type:string, name:string} Parent space-location or planet
+---@field distance number Relative distance from the parent
+---@field orientation number Relative orientation around the parent
+
+--- Wrapper for planet, space-location, and space-connection prototypes.
 ---@class StdLib.Data.Space : StdLib.Data
----@field asteroid_spawn_definitions? table[]
----@field distance? number
----@field orientation? number
----@field orbit? StdLib.Data.Orbit
+---@field asteroid_spawn_definitions? table[] Asteroid spawn definitions
+---@field distance? number Starmap distance
+---@field orientation? number Starmap orientation
+---@field orbit? StdLib.Data.Orbit Relative orbit added by PlanetsLib, generally used for moons
 local Space = {
 	__class = 'Space',
 	__index = Data

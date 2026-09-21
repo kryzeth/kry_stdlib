@@ -1,4 +1,4 @@
---- Pipes
+--- Utilities for generating pipe sprite definitions.
 ---@class StdLib.Data.Pipes
 local Pipes = {}
 local Sprites = require('__kry_stdlib__/stdlib/data/modules/sprites')
