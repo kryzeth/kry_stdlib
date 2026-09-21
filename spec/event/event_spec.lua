@@ -72,24 +72,30 @@ describe('Event', function ()
 
             Event.register(0, genstub())
             assert.spy(s).was.called(1)
-            assert.spy(s).was.called_with(0, match.is_callable())
+            assert.spy(s).was.called_with(0, match.is_callable(), nil)
             Event.script.on_event:clear()
 
             Event.register(0, genstub())
             assert.spy(s).was_not.called()
             Event.script.on_event:clear()
 
-            Event.register(1, genstub())
+            local filters = {
+                {filter = "type", type = "locomotive"}
+            }
+
+            Event.register(1, genstub(), filters)
             assert.spy(s).was.called(1)
-            assert.spy(s).was.called_with(1, match.is_callable())
+            assert.spy(s).was.called_with(1, match.is_callable(), filters)
             Event.script.on_event:clear()
 
+            -- Subsequent handlers do not re-register the base event.
             Event.register(1, genstub())
             assert.spy(s).was_not.called()
             Event.script.on_event:clear()
 
-            Event.register(1, genstub(), genstub())
-            Event.register(1, genstub(), genstub(), 'foo')
+            Event.register(1, genstub(), {
+                {filter = "name", name = "locomotive"}
+            })
             assert.spy(s).was_not.called()
         end)
     end)
@@ -131,75 +137,21 @@ describe('Event', function ()
     end)
 
     insulate('.register', function()
-        it('should register and appropriately invoke filtered handlers', function()
+        it('should pass pattern to the handler as its second argument', function()
             World.bootstrap()
             local Event = require('__kry_stdlib__/stdlib/event/event')
 
-            local pete_repeat_repeated_pattern = 'pete_repeat' -- RepeatyPete copies pattern here when invoked
-            local that_one_thing = {} -- arbitrary singleton
-
-            -- filters
-            local MikeyLikesIt = spy(function() return true end)
-            local ReginaRejectsalot = spy(function() return false end)
-            local PickyPaul = spy(function(event) return event.is_special end)
-            local RepeatyPete = spy(function(_, pattern)
-                pete_repeat_repeated_pattern = pattern
-                return pattern
+            local pattern = {}
+            local handler = spy(function(_, received_pattern)
+                assert.equals(pattern, received_pattern)
             end)
-            -- stubs
-            local mike, regina, paul, pete, peterepeat, peterepeatrepeat = genstub(6)
-            -- registrations
-            Event.register(0, mike, MikeyLikesIt).register(0, regina, ReginaRejectsalot)
-            Event.register(0, paul, PickyPaul).register(0, pete, RepeatyPete, false)
-            Event.register(0, peterepeat, RepeatyPete, true)
-            Event.register(0, peterepeatrepeat, RepeatyPete, that_one_thing)
+
+            Event.register(0, handler, nil, pattern)
 
             script.raise_event()
-            assert.spy(MikeyLikesIt).was.called(1)
-            assert.spy(MikeyLikesIt).was.called_with(match.is_table(), nil)
-            assert.stub(mike).was.called(1)
-            assert.spy(ReginaRejectsalot).was.called(1)
-            assert.spy(ReginaRejectsalot).was.called_with(match.is_table(), nil)
-            assert.stub(regina).was_not.called()
-            assert.spy(PickyPaul).was.called(1)
-            assert.spy(PickyPaul).was.called_with(match.is_table(), nil)
-            assert.stub(paul).was_not.called()
-            assert.spy(RepeatyPete).was.called(3)
-            assert.spy(RepeatyPete).was.called_with(match.is_table(), false)
-            assert.spy(RepeatyPete).was.called_with(match.is_table(), true)
-            assert.spy(RepeatyPete).was.called_with(match.is_table(), that_one_thing)
-            assert.stub(pete).was_not.called()
-            assert.stub(peterepeat).was.called(1)
-            assert.stub(peterepeatrepeat).was.called(1)
-            assert.are.equals(pete_repeat_repeated_pattern, that_one_thing)
 
-            paul:clear(); PickyPaul:clear()
-
-            -- test that picky paul is getting the event info passed through
-            script.raise_event(0, {is_special = true})
-            assert.spy(PickyPaul).was.called(1)
-            assert.spy(PickyPaul).was.called_with(match.is_table(), nil)
-            assert.stub(paul).was.called(1)
-
-            --[[
-            -- some math filters affecting arbitrary upvalue
-            -- these mostly just test reordering of callees which
-            -- is hard to do elegantly using called_with
-            local up_value = 0
-            local PlusPattern = function(event, pattern) --luacheck: ignore
-                up_value = up_value + pattern
-                return up_value > 0
-            end
-            local TimesPatternMinusTwo = function(event, pattern) --luacheck: ignore
-                up_value = up_value * pattern - 2
-                return up_value > 0
-            end
-            local AdditiveInverse = function() --luacheck: ignore
-                up_value = up_value * -1
-                return up_value > 0
-            end
-            ---: Use them!
-            ]]
+            assert.spy(handler).was.called(1)
+            assert.spy(handler).was.called_with(match.is_table(), pattern)
         end)
     end)
 
@@ -646,75 +598,6 @@ describe('Event', function ()
             assert.stub(f).was.called(1)
             assert.spy(g).was.called(1)
             assert.stub(h).was.called(1)
-        end)
-    end)
-
-    insulate('.dispatch', function()
-        it('should abort event processing when a matched handler \z
-            returns stop_processing', function()
-            World.bootstrap()
-            local Event = require('__kry_stdlib__/stdlib/event/event')
-            local i,k = genstub(2)
-            local j = spy(function()
-                return Event.stop_processing
-            end)
-            local true_matcher = function() return true end
-            local foo_matcher = function(e) return e.foo and true or false end
-            Event.register(1, i, true_matcher).register(1, j, foo_matcher)
-            Event.register(1, k, true_matcher)
-
-            script.raise_event(1, {foo = false})
-            assert.stub(i).was.called(1)
-            assert.stub(j).was_not.called()
-            assert.stub(k).was.called(1)
-            i:clear(); j:clear(); k:clear()
-
-            script.raise_event(1, {foo = true})
-            assert.stub(i).was.called(1)
-            assert.stub(j).was.called(1)
-            assert.stub(k).was_not.called()
-            i:clear(); j:clear(); k:clear()
-
-            script.raise_event(1, {foo = false, protected_mode = true})
-            assert.stub(i).was.called(1)
-            assert.stub(j).was_not.called()
-            assert.stub(k).was.called(1)
-            i:clear(); j:clear(); k:clear()
-
-            script.raise_event(1, {foo = true, protected_mode = true})
-            assert.stub(i).was.called(1)
-            assert.stub(j).was.called(1)
-            assert.stub(k).was_not.called()
-        end)
-    end)
-
-    insulate('.dispatch', function()
-        it('should not stop processing when a matcher returns \z
-            Event.stop_processing, which should just count as a \z
-            successful match in that context', function()
-            World.bootstrap()
-            local Event = require('__kry_stdlib__/stdlib/event/event')
-            local l,m,n,o = genstub(4)
-            local pattern_identity_matcher = function(_, pattern)
-                return pattern
-            end
-            Event.register(2, l)
-            Event.register(2, m, pattern_identity_matcher, Event.stop_processing)
-            Event.register(2, n, pattern_identity_matcher, false)
-            Event.register(2, o)
-
-            script.raise_event(2)
-            assert.stub(l).was.called(1)
-            assert.stub(m).was.called(1) -- because stop_processing counts as true
-            assert.stub(n).was_not.called() -- because false counts as false
-            assert.stub(o).was.called(1) -- because nonmatch does not stop processing
-            l:clear(); m:clear(); n:clear(); o:clear()
-
-            script.raise_event(2, {protected_mode = true})
-            assert.stub(l).was.called(1)
-            assert.stub(m).was.called(1)
-            assert.stub(n).was_not.called()
-            assert.stub(o).was.called(1)
         end)
     end)
 end)
