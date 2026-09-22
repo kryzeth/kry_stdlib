@@ -20,7 +20,7 @@
 -- @section Callers
 
 --- Is the test truthy
----@class StdLib.Utils.Is : StdLib.Utils.Is.M
+---@class StdLib.Utils.Is : StdLib.Utils.Is.Methods
 ---@usage
 --- local Is = require('__kry_stdlib__/stdlib/utils/is')
 --- Is.True(true)
@@ -30,21 +30,20 @@
 local Is = {}
 
 --- Is the test not truthy
----@class StdLib.Utils.Is.Not
+---@class StdLib.Utils.Is.Not : StdLib.Utils.Is.Methods
 Is.Not = {}
 
---- Assert that the test is Truthy
----@class StdLib.Utils.Is.Assert : StdLib.Utils.Is.M
+--- Assert that the test is truthy.
+---@class StdLib.Utils.Is.Assert : StdLib.Utils.Is.Methods
+---@field Table fun(var: any, message: (string|fun(): string)?, level: integer?): any
 Is.Assert = {}
 
 --- Assert that the test is not Truthy
----@class StdLib.Utils.Is.Assert.Not : StdLib.Utils.Is.M
+---@class StdLib.Utils.Is.Assert.Not : StdLib.Utils.Is.Methods
 Is.Assert.Not = {}
 
---- Functions
--- @section Functions
-
----@class StdLib.Utils.Is.M
+--- Shared predicate methods exposed through Is, Is.Not, Is.Assert, and Is.Assert.Not.
+---@class StdLib.Utils.Is.Methods
 local M = {}
 
 local type = type

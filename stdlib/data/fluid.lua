@@ -1,6 +1,6 @@
 local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
 
---- Fluid
+--- Wrapper for Factorio fluid prototypes.
 ---@class StdLib.Data.Fluid : StdLib.Data
 local Fluid = {
     __class = 'Fluid',

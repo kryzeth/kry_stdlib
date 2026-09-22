@@ -1,6 +1,8 @@
+--- Unit suffix accepted by Factorio energy strings.
+---@alias EnergyUnit "W"|"J"
+
 --- Utilities for parsing, formatting, and scaling Factorio `Energy` strings.
 ---@class StdLib.Data.Energy
----@alias EnergyUnit "W"|"J"
 local Energy = {}
 
 -- List of Factorio-supported decimal multipliers. 'K' is accepted as a legacy alias

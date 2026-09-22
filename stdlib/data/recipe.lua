@@ -2,7 +2,7 @@ local Data = require('__kry_stdlib__/stdlib/data/data')
 local Tech = require('__kry_stdlib__/stdlib/data/technology')
 local Category = require('__kry_stdlib__/stdlib/data/category')
 
---- Recipe class
+--- Wrapper for Factorio recipe prototypes.
 ---@class StdLib.Data.Recipe : StdLib.Data
 ---@field main_product? string
 ---@field results? Product[]

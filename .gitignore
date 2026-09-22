@@ -11,6 +11,8 @@ stdlib-docs/
 .vscode/
 
 # Exclude the output directory
+output/
+build/
 .output/
 .build/
 
@@ -68,4 +70,3 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
-*.py

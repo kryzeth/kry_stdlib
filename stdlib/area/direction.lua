@@ -68,22 +68,11 @@ end
 
 --- Returns a vector from a direction.
 ---@param direction defines.direction
----@param distance number? [opt = 1]
----@return Position
+---@param distance? number
+---@return Vector.struct
 function Direction.to_vector(direction, distance)
     distance = distance or 1
     local x, y = 0, 0
-	--[[
-    if     direction == Direction.north     then y = y - distance
-    elseif direction == Direction.northeast then x, y = x + distance, y - distance
-    elseif direction == Direction.east      then x = x + distance
-    elseif direction == Direction.southeast then x, y = x + distance, y + distance
-    elseif direction == Direction.south     then y = y + distance
-    elseif direction == Direction.southwest then x, y = x - distance, y + distance
-    elseif direction == Direction.west      then x = x - distance
-    elseif direction == Direction.northwest then x, y = x - distance, y - distance
-    end
-	]]
 
 	if direction == Direction.north then x, y = 0, -distance
 	elseif direction == Direction.northnortheast then x, y = distance * 0.5, -distance
@@ -105,11 +94,10 @@ function Direction.to_vector(direction, distance)
     return { x = x, y = y }
 end
 
---NEW: calc real veactor
 --- Returns a vector from a direction.
 ---@param direction defines.direction
----@param distance number? [opt = 1]
----@return Position
+---@param distance? number
+---@return Vector.struct
 function Direction.to_vector2(direction, distance, round)
     distance = distance or 1
     local x, y = 0, 0

@@ -77,16 +77,11 @@ local assert, type, tonumber = assert, type, tonumber
 local event_names = table.invert(defines.events)
 
 if not config.skip_script_protections then -- Protections for post and pre registrations
-    for _, define in pairs(defines.events) do
-        if Event.script.get_event_handler(define--[[@as uint]]) then
+    for _, event_id in pairs(defines.events) do
+        if Event.script.get_event_handler(event_id --[[@as defines.events]]) then
             error('Detected attempt to add the STDLIB event module after using script.on_event')
         end
     end
-    --[[for name in pairs(Event.script) do
-        _G.script[name] = function()
-            error('Detected attempt to register an event using script.' .. name .. ' while using the STDLIB event system ')
-        end
-    end]]--
 end
 
 local bootstrap_events = {
@@ -141,14 +136,14 @@ end
 -- Event.register(event1, handler1).register(event2, handler2)
 ---@param event_id defines.events|int|string|(defines.events|int|string)[]
 ---@param handler function the function to call when the given events are triggered
----@param filter function? [opt=nil] a function whose return determines if the handler is executed. event and pattern are passed into this
----@param pattern any? [opt=nil] an invariant that can be used in the filter function, passed as the second parameter to your filter
+---@param filter EventFilter? [opt=nil] native Factorio event filters
+---@param pattern any? [opt=nil] an optional value passed as the second parameter to the handler
 ---@param options table? [opt=nil] a table of options that take precedence over the module options.
 ---@return StdLib.Event #Event module object allowing for call chaining
 function Event.register(event_id, handler, filter, pattern, options)
     assert(event_id, 'missing event_id argument')
     assert(Type.Function(handler), 'handler function is missing, use Event.remove to un register events')
-    assert(filter == nil or Type.Function(filter), 'filter must be a function when present')
+    assert(filter == nil or Type.Table(filter), 'filter must be a table when present')
     assert(options == nil or Type.Table(options), 'options must be a table when present')
 
     options = setmetatable(options or {}, Event_options_meta)
@@ -178,7 +173,7 @@ function Event.register(event_id, handler, filter, pattern, options)
             end
         elseif event_id >= 0 then
             --Positive values will be defines.events
-            Event.script.on_event(event_id, Event.dispatch)
+            Event.script.on_event(event_id, Event.dispatch, filter)
         elseif event_id < 0 then
             --Use negative values to register on_nth_tick
             Event.script.on_nth_tick(math.abs(event_id--[[@as uint]])--[[@as uint]] , Event.dispatch)
@@ -190,7 +185,7 @@ function Event.register(event_id, handler, filter, pattern, options)
     --If handler is already registered for this event: remove it for re-insertion at the end.
     if #registry > 0 then
         for i, registered in ipairs(registry) do
-            if registered.handler == handler and registered.pattern == pattern and registered.filter == filter then
+            if registered.handler == handler and registered.pattern == pattern then
                 table.remove(registry, i)
                 local output = {
                     '__' .. script.mod_name .. '__',
@@ -206,7 +201,7 @@ function Event.register(event_id, handler, filter, pattern, options)
     end
 
     --Finally insert the handler
-    table.insert(registry, { handler = handler, filter = filter, pattern = pattern, options = options })
+    table.insert(registry, { handler = handler, pattern = pattern, options = options })
     return Event
 end
 
@@ -218,21 +213,20 @@ end
 -- <p>The `event_id` parameter takes in either a single, multiple, or mixture of @{defines.events}, @{int}, and @{string}.
 ---@param event_id defines.events|integer|string|table<defines.events|integer|string>
 ---@param handler? function [opt] the handler to remove, if not present remove all registered handlers for the event_id
----@param filter? function [opt]
 ---@param pattern any
 ---@return StdLib.Event #Event module object allowing for call chaining
-function Event.remove(event_id, handler, filter, pattern)
+function Event.remove(event_id, handler, pattern)
     assert(event_id, 'missing event_id argument')
 
     -- Handle recursion here
     if type(event_id)=="table" then
         for _, id in pairs(event_id) do
-            Event.remove(id, handler, filter, pattern)
+            Event.remove(id, handler, pattern)
         end
         return Event
     end
 
-	event_id = normalize_event_id(event_id)
+    event_id = normalize_event_id(event_id)
     assert(valid_id(event_id), 'event_id is invalid')
 
     local registry = Event.registry[event_id]
@@ -240,64 +234,41 @@ function Event.remove(event_id, handler, filter, pattern)
         local found_something = false
         for i = #registry, 1, -1 do
             local registered = registry[i]
-            if handler then -- handler, possibly filter, possibly pattern
+
+            if handler then
                 if handler == registered.handler then
-                    if not filter and not pattern then
-                        table.remove(registry, i)
-                        found_something = true
-                    elseif filter then
-                        if filter == registered.filter then
-                            if not pattern then
-                                table.remove(registry, i)
-                                found_something = true
-                            elseif pattern and pattern == registered.pattern then
-                                table.remove(registry, i)
-                                found_something = true
-                            end
-                        end
-                    elseif pattern and pattern == registered.pattern then
+                    if not pattern or pattern == registered.pattern then
                         table.remove(registry, i)
                         found_something = true
                     end
                 end
-            elseif filter then -- no handler, filter, possibly pattern
-                if filter == registered.filter then
-                    if not pattern then
-                        table.remove(registry, i)
-                        found_something = true
-                    elseif pattern and pattern == registered.pattern then
-                        table.remove(registry, i)
-                        found_something = true
-                    end
-                end
-            elseif pattern then -- no handler, no filter, pattern
+            elseif pattern then
                 if pattern == registered.pattern then
                     table.remove(registry, i)
                     found_something = true
                 end
-            else -- no handler, filter, or pattern
+            else
                 table.remove(registry, i)
                 found_something = true
             end
         end
 
         if found_something and table.size(registry) == 0 then
-            -- Clear the registry data and un subscribe if there are no registered handlers left
             event_registry[event_id] = nil
 
             if Type.String(event_id) then
-                -- String event ids will either be Bootstrap events or custom input events
                 if bootstrap_events[event_id] then
                     Event.script[event_id](nil)
                 else
                     Event.script.on_event(event_id, nil)
                 end
             elseif event_id >= 0 then
-                -- Positive values will be defines.events
                 Event.script.on_event(event_id, nil)
             elseif event_id < 0 then
-                -- Use negative values to remove on_nth_tick
-                Event.script.on_nth_tick(math.abs(event_id--[[@as uint]])--[[@as uint]] , nil)
+                Event.script.on_nth_tick(
+                    math.abs(event_id--[[@as uint]])--[[@as uint]],
+                    nil
+                )
             end
         elseif not found_something then
             log('Attempt to deregister already non-registered listener from event: ' .. event_id)
@@ -305,6 +276,7 @@ function Event.remove(event_id, handler, filter, pattern)
     else
         log('Attempt to deregister already non-registered listener from event: ' .. event_id)
     end
+
     return Event
 end
 
@@ -359,44 +331,23 @@ function Event.register_if(truthy, id, ...)
 end
 Event.on_event_if = Event.register_if
 
--- A dispatch helper function
--- Call any filter and as applicable the event handler.
+-- A dispatch helper function.
 -- protected errors are logged to game console if game is available, otherwise a real error
 -- is thrown. Bootstrap events are not protected from erroring no matter the option.
 local function dispatch_event(event, registered)
-    local match_result, handler_result
     local protected = registered.options.protected_mode and not bootstrap_events[event.name]
 
     -- fast default path; call handlers directly
     if not protected then
-        -- If we have a filter run it first passing event, and registered.pattern as parameters
-        -- If the filter returns truthy call the handler passing event, and the result from the filter
-        if registered.filter then
-            match_result = registered.filter(event, registered.pattern)
-            if match_result then
-                handler_result = registered.handler(event, match_result)
-            end
-        else
-            handler_result = registered.handler(event, registered.pattern)
-        end
-        return handler_result
+        return registered.handler(event, registered.pattern)
     end
 
     -- protected path
-    local success
-    if registered.filter then
-        success, match_result = pcall(registered.filter, event, registered.pattern)
-        if success and match_result then
-            success, handler_result = pcall(registered.handler, event, match_result)
-        end
-    else
-        success, handler_result = pcall(registered.handler, event, registered.pattern)
-    end
+    local success, handler_result = pcall(registered.handler, event, registered.pattern)
 
     -- If the handler errors lets make sure someone notices
-    if not success and not Event.log_and_print(handler_result or match_result) then
-        -- no players received the message, force a real error so someone notices
-        error(handler_result or match_result)
+    if not success and not Event.log_and_print(handler_result) then
+        error(handler_result)
     end
 
     return success and handler_result or nil
@@ -503,11 +454,10 @@ function Event.register_surface(bool)
     return Event
 end
 
---- Retrieve or Generate an event_name and store it in Event.custom_events
----@param event_name string the custom name for your event.
----@return int the id associated with the event.
--- @usage
--- Event.register(Event.generate_event_name("my_custom_event"), handler)
+--- Retrieves or generates an event ID and stores it in `Event.custom_events`.
+---@param event_name string The custom name for the event.
+---@return defines.events id The generated event ID.
+---@usage Event.register(Event.generate_event_name("my_custom_event"), handler)
 function Event.generate_event_name(event_name)
     assert(Type.String(event_name), 'event_name must be a string.')
 

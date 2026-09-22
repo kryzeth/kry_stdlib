@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.20
+Date: September 20, 2026
+  Optimizations:
+    - Modified the filter field from Event.register to pass directly through to the base game's filter field.
+  Info:
+    - Added github pages documentation (preliminary pass, subject to change, currently using the most basic formatting).
+      Many thanks to SafTheLamb for helping me figure out the first steps to set this up.
+      Sorry for beating you to the punch on publishing.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.19
 Date: September 12, 2026
   Minor Features:

@@ -19,7 +19,7 @@ local table = require('__kry_stdlib__/stdlib/utils/table')
 --- Gets all resource entities at the specified position and surface.
 -- Adapted from *YARM/resmon.lua &rarr; find\_resource\_at*
 ---@param surface string|LuaSurface the surface to look up
----@param position Position the position to check
+---@param position MapPosition the position to check
 ---@return LuaEntity[] #an array of resource entities
 function Resource.get_resources_at(surface, position)
     Is.Assert(surface, 'missing surface')
@@ -42,7 +42,7 @@ end
 --> This implementation is unstable; if a resource entity reference changes during the search,
 -- *both the old and the new version* of the entity might be included.
 ---@param surface LuaSurface the surface to look up
----@param position Position the position to check
+---@param position MapPosition the position to check
 ---@return any ({@{nil}} or {[@{string} &lt;resource-type&gt;] = {@{LuaEntity},...},...})
 --- a map of resource types to resource entities or empty array if they don't exist
 function Resource.get_resource_patches_at(surface, position)
@@ -67,7 +67,7 @@ end
 --> This implementation is unstable; if a resource entity reference changes during the search,
 -- *both the old and the new version* of the entity might be included.
 ---@param surface LuaSurface the surface to look up
----@param position Position the position to check
+---@param position MapPosition the position to check
 ---@param type string the resource type (example: "iron-ore")
 ---@return LuaEntity[]? #an array containing all resources in the resource patch, or an empty array if there are no resources there
 function Resource.get_resource_patch_at(surface, position, type)
