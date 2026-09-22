@@ -7,6 +7,7 @@ on:
     paths:
       - "stdlib/**"
       - ".github/workflows/docs.yml"
+      - ".github/scripts/customize-docs.py"
   workflow_dispatch:
 
 permissions:
@@ -41,7 +42,10 @@ jobs:
           emmylua_doc_cli stdlib
           --output output
           --site-name "Kryzeth Standard Library"
-          --exclude "**/utils/debug.lua,**/scripts/spread-on-tick.lua"
+          --exclude "**/vendor/**,**/utils/debug.lua,**/scripts/spread-on-tick.lua"
+
+      - name: Customize documentation
+        run: python3 .github/scripts/customize-docs.py
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
