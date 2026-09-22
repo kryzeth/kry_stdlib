@@ -33,8 +33,9 @@ local Is = {}
 ---@class StdLib.Utils.Is.Not : StdLib.Utils.Is.Methods
 Is.Not = {}
 
---- Assert that the test is Truthy
+--- Assert that the test is truthy.
 ---@class StdLib.Utils.Is.Assert : StdLib.Utils.Is.Methods
+---@field Table fun(var: any, message: (string|fun(): string)?, level: integer?): any
 Is.Assert = {}
 
 --- Assert that the test is not Truthy

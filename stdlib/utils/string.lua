@@ -196,12 +196,12 @@ end
 
 --- Splits a string into an array.
 -- Note: Empty split substrings are not included in the resulting table.
--- <p>For example, `string.split("foo.bar...", ".", false)` results in the table `{"foo", "bar"}`.
----@param s string the string to split
----@param sep string? [opt="."] the separator to use.
----@param pattern boolean? [opt=false] whether to interpret the separator as a lua pattern or plaintext for the string split
----@param func function? [opt] pass each split string through this function.
----@return string[] #an array of strings
+---@generic T
+---@param s string
+---@param sep? string
+---@param pattern? boolean
+---@param func? fun(value: string): T
+---@return T[]
 function String.split(s, sep, pattern, func)
     sep = sep or '.'
     sep = sep ~= '' and sep or '.'

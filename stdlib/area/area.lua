@@ -1,14 +1,16 @@
 --- Tools for working with bounding boxes.
 ---@class StdLib.Area : StdLib.Core
----@usage local Area = require('__kry_stdlib__/stdlib/area/area')
----@see StdLib.Area.Position
----@see BoundingBox
----@see Position
+---@field left_top StdLib.Area.Position
+---@field right_bottom StdLib.Area.Position
+---@field orientation? RealOrientation
+---@overload fun(area: BoundingBox): StdLib.Area
+---@overload fun(area_string: string): StdLib.Area
+---@overload fun(x1?: number, y1?: number, x2?: number, y2?: number): StdLib.Area
 local Area = {
 	__class = 'Area',
 	__index = require('__kry_stdlib__/stdlib/core') --[[@as StdLib.Core]]
 }
-setmetatable(Area, Area)
+setmetatable(Area --[[@as table]], Area --[[@as table]])
 
 local Position = require('__kry_stdlib__/stdlib/area/position') --[[@as StdLib.Area.Position]]
 
@@ -37,14 +39,18 @@ Area.__call = function(_, ...)
     end
 end
 
+---@param lt StdLib.Area.Position
+---@param rb StdLib.Area.Position
+---@param o? RealOrientation
+---@return StdLib.Area
 local function new_area(lt, rb, o)
     return setmetatable({ left_top = lt, right_bottom = rb, orientation = o }, metatable)
 end
 
 --- Converts an area in either array or table format to an area with a metatable.
 -- Returns itself if it already has a metatable
----@param area BoundingBox the area to convert
----@return BoundingBox #a converted area
+---@param area BoundingBox
+---@return StdLib.Area
 function Area.new(area)
     local left_top = Position.new(area.left_top or area[1])
     local right_bottom = Position.new(area.right_bottom or area[2] or area[1])
@@ -52,11 +58,8 @@ function Area.new(area)
 end
 
 --- Creates an area from number parameters.
----@tparam x1 number [opt=0] x-position of left_top, first position
----@tparam y1 number [opt=0] y-position of left_top, first position
----@tparam x2 number [opt=0] x-position of right_bottom, second position
----@tparam y2 number [opt=0] y-position of right_bottom, second position
----@treturn BoundingBox #the area in a table format
+---@param ... number
+---@return StdLib.Area
 function Area.construct(...)
     local args = type((...)) == 'table' and { select(2, ...) } or { select(1, ...) }
 
@@ -66,27 +69,27 @@ function Area.construct(...)
     return setmetatable({ left_top = lt, right_bottom = rb }, metatable)
 end
 
-
-
 --- Loads the metatable into the passed Area without creating a new one.
----@param area BoundingBox the Area to set the metatable onto
----@return BoundingBox #the Area with metatable attached
+---@param area BoundingBox
+---@return StdLib.Area
 function Area.load(area)
     area.left_top = Position.load(area.left_top)
     area.right_bottom = Position.load(area.right_bottom)
-    return setmetatable(area, metatable)
+    local loaded = setmetatable(area, metatable)
+    ---@cast loaded StdLib.Area
+    return loaded
 end
 
 --- Converts an area string to an area.
----@param area_string string the area to convert
----@return BoundingBox
+---@param area_string string
+---@return StdLib.Area
 function Area.from_string(area_string)
     return Area(load('return ' .. area_string)())
 end
 
 --- Converts a string key area to an area.
----@param area_string string the area to convert
----@return BoundingBox
+---@param area_string string
+---@return StdLib.Area
 function Area.from_key(area_string)
 	local function n(v) return tonumber(v) or error('Invalid number: ' .. v) end
     local tab = string.split(area_string, ',', false, tonumber)
@@ -94,9 +97,6 @@ function Area.from_key(area_string)
     local rb = Position.new { x = n(tab[3]), y = n(tab[4]) }
     return new_area(lt, rb)
 end
-
---- Area Methods
--- @section Methods
 
 --- Stores the area for recall later, not deterministic.
 -- Only the last area stored is saved.
@@ -193,20 +193,22 @@ function Area.center_points(area)
     return new_area(Position.center(area.left_top), right_bottom_center(area.right_bottom), area.orientation)
 end
 
----@class BoundingBox.corners : BoundingBox.0
----@field left_bottom Position
----@field right_top Position
+--- Bounding box with all four corner positions.
+---@class StdLib.Area.BoundingBoxCorners : StdLib.Area
+---@field left_bottom StdLib.Area.Position
+---@field right_top StdLib.Area.Position
 
---- add left_bottom and right_top to the area
+--- Adds the left-bottom and right-top corner positions to a bounding box.
 ---@param area BoundingBox
----@return BoundingBox.corners #the area with left_bottom and right_top included
+---@return StdLib.Area.BoundingBoxCorners area
 function Area.corners(area)
-	---@cast area BoundingBox.corners
+    area = Area(area)
     local lt, rb = area.left_top, area.right_bottom
     local lb = area.left_bottom or Position.construct_xy(0, 0)
     local rt = area.right_top or Position.construct_xy(0, 0)
     lb.x, lb.y = lt.x, rb.y
     rt.x, rt.y = rb.x, lt.y
+    ---@cast area StdLib.Area.BoundingBoxCorners
     area.left_bottom = lb
     area.right_top = rt
 
@@ -252,7 +254,7 @@ end
 ---@param area2 BoundingBox
 ---@return BoundingBox the smallest area
 function Area.min(area, area2)
-    return (Area.size(Area) <= Area.size(area2) and area) or area2
+    return (Area.size(area) <= Area.size(area2) and area) or area2
 end
 
 --- Returns the largest sized area.
@@ -310,9 +312,9 @@ function Area.adjust(area, amount)
 end
 
 --- Offsets the area by the `{x, y}` values.
----@param area BoundingBox the area to offset
----@param pos Position the position to which the area will offset
----@return BoundingBox #the area offset by the position
+---@param area BoundingBox
+---@param pos MapPosition
+---@return BoundingBox
 function Area.offset(area, pos)
     local vec = Position(pos)
 
@@ -376,8 +378,8 @@ end
 -- @section ConversionFunctions
 
 --- Calculates the center of the area and returns the position.
----@param area BoundingBox the area
----@return Position #the center of the area
+---@param area BoundingBox
+---@return StdLib.Area.Position
 function Area.center(area)
     local dist_x = area.right_bottom.x - area.left_top.x
     local dist_y = area.right_bottom.y - area.left_top.y
@@ -476,8 +478,8 @@ end
 
 --- Unpack an area into a tuple of position tables.
 ---@param area BoundingBox
----@return Position left_top
----@return Position right_bottom
+---@return MapPosition left_top
+---@return MapPosition right_bottom
 function Area.unpack_positions(area)
     return area.left_top, area.right_bottom
 end
@@ -603,9 +605,9 @@ function Area.collides(area1, area2)
 end
 
 --- Are the passed positions all located in an area.
----@param area BoundingBox the search area
----@param positions Position[] array of Position
----@return boolean #true if the positions are located in the area
+---@param area BoundingBox
+---@param positions MapPosition.struct[]
+---@return boolean
 function Area.contains_positions(area, positions)
     for _, pos in pairs(positions) do if not Position.inside(pos, area) then return false end end
     return true
