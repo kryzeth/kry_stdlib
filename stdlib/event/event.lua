@@ -77,16 +77,11 @@ local assert, type, tonumber = assert, type, tonumber
 local event_names = table.invert(defines.events)
 
 if not config.skip_script_protections then -- Protections for post and pre registrations
-    for _, define in pairs(defines.events) do
-        if Event.script.get_event_handler(define--[[@as uint]]) then
+    for _, event_id in pairs(defines.events) do
+        if Event.script.get_event_handler(event_id --[[@as defines.events]]) then
             error('Detected attempt to add the STDLIB event module after using script.on_event')
         end
     end
-    --[[for name in pairs(Event.script) do
-        _G.script[name] = function()
-            error('Detected attempt to register an event using script.' .. name .. ' while using the STDLIB event system ')
-        end
-    end]]--
 end
 
 local bootstrap_events = {
@@ -459,11 +454,10 @@ function Event.register_surface(bool)
     return Event
 end
 
---- Retrieve or Generate an event_name and store it in Event.custom_events
----@param event_name string the custom name for your event.
----@return int the id associated with the event.
--- @usage
--- Event.register(Event.generate_event_name("my_custom_event"), handler)
+--- Retrieves or generates an event ID and stores it in `Event.custom_events`.
+---@param event_name string The custom name for the event.
+---@return defines.events id The generated event ID.
+---@usage Event.register(Event.generate_event_name("my_custom_event"), handler)
 function Event.generate_event_name(event_name)
     assert(Type.String(event_name), 'event_name must be a string.')
 

@@ -8,9 +8,9 @@ local Game = {
 setmetatable(Game, Game)
 local inspect = _ENV.inspect
 
---- Return a valid player object from event, index, string, or userdata
----@param mixed string|number|LuaPlayer|anyevent
----@return LuaPlayer? #a valid player or nil
+--- Returns a valid player from a player identification or event containing `player_index`.
+---@param mixed PlayerIdentification|table
+---@return LuaPlayer? player
 function Game.get_player(mixed)
 	local type = type(mixed)
     if type == 'table' or type == 'userdata' then
@@ -24,9 +24,9 @@ function Game.get_player(mixed)
     end
 end
 
---- Return a valid force object from event, string, or userdata
----@param mixed string|LuaForce|anyevent
----@return LuaForce? #a valid force or nil
+--- Returns a valid force from a force name, LuaForce, or object/event containing `force`.
+---@param mixed string|LuaForce|table
+---@return LuaForce? force
 function Game.get_force(mixed)
 	local mixed_type = type(mixed)
     if mixed_type == 'table' or mixed_type == 'userdata' then
@@ -41,8 +41,9 @@ function Game.get_force(mixed)
     end
 end
 
----@param mixed string|LuaSurface|anyevent
----@return LuaSurface?
+--- Returns a valid surface from a surface identification or object/event containing `surface`.
+---@param mixed SurfaceIdentification|table
+---@return LuaSurface? surface
 function Game.get_surface(mixed)
     local type = type(mixed)
     if type == 'table' or type == 'userdata' then
@@ -58,11 +59,11 @@ function Game.get_surface(mixed)
 end
 
 --- Messages all players currently connected to the game.
---> Offline players are not counted as having received the message.
--- If no players exist msg is stored in the `storage._print_queue` table.
----@param msg string the message to send to players
----@param condition (fun(LuaPlayer):boolean)? [opt] the condition to be true for a player to be messaged
----@return uint #the number of players who received the message.
+--- Offline players are not counted as having received the message.
+--- If no players exist, the message is stored in `storage._print_queue`.
+---@param msg string The message to send.
+---@param condition? fun(player: LuaPlayer): boolean Optional condition a player must satisfy.
+---@return uint count Number of players who received the message.
 function Game.print_all(msg, condition)
     local num = 0
     if #game.players > 0 then
@@ -81,12 +82,12 @@ function Game.print_all(msg, condition)
 end
 
 --- Gets or sets data in the storage variable.
----@param sub_table string the name of the table to use to store data.
----@param index any an optional index to use for the sub_table
----@param key any the key to store the data in
----@param set boolean? [opt] store the contents of value, when true return previously stored data
----@param value any when set is true set key to this value, if not set and key is empty store this
----@return any #the chunk value stored at the key or the previous value
+---@param sub_table string The name of the table used to store the data.
+---@param index? any Optional nested index.
+---@param key any The key used to store the data.
+---@param set? boolean When true, sets `value` and returns the previously stored value.
+---@param value? any Value to store.
+---@return any value The stored value or previous value.
 function Game.get_or_set_data(sub_table, index, key, set, value)
     assert(type(sub_table) == 'string', 'sub_table must be a string')
     storage[sub_table] = storage[sub_table] or {}
@@ -110,6 +111,7 @@ function Game.get_or_set_data(sub_table, index, key, set, value)
     return this[key]
 end
 
+--- Writes the currently active mods to `Mods.lua`.
 function Game.write_mods()
     helpers.write_file('Mods.lua', 'return ' .. inspect(script.active_mods))
 end
@@ -146,6 +148,7 @@ function Game.write_statistics()
     end
 end
 
+--- Writes the map generation settings for every surface.
 function Game.write_surfaces()
     helpers.remove_path('surfaces')
     for _, surface in pairs(game.surfaces) do

@@ -14,7 +14,7 @@ setmetatable(Area --[[@as table]], Area --[[@as table]])
 
 local Position = require('__kry_stdlib__/stdlib/area/position') --[[@as StdLib.Area.Position]]
 
-local math = require('__kry_stdlib__/stdlib/utils/math') --[[@as StdLib.Utils.Math]]
+local math = require('__kry_stdlib__/stdlib/utils/math')
 local string = require('__kry_stdlib__/stdlib/utils/string') --[[@as StdLib.Utils.String]]
 local abs, floor, max = math.abs, math.floor, math.max
 
@@ -681,11 +681,11 @@ end
 -- print('(' .. x .. ', ' .. y .. ')')
 -- end
 -- prints: (0, 0) (1, 0) (1, 1) (0, 1) (-1, 1) (-1, 0) (-1, -1) (0, -1) (1, -1) (2, -1) (2, 0) (2, 1) (-2, 1) (-2, 0) (-2, -1)
----@param area BoundingBox the area on which to perform a spiral iteration
----@param as_position boolean return a position object instead of x, y
----@return function #the iterator function
----@return BoundingBox area #The area being iterated over.
----@return number #A counter or status value, depending on the iteration logic.
+---@param area BoundingBox The area to iterate.
+---@param as_position? boolean Return a position object instead of x and y coordinates.
+---@return fun(state: BoundingBox, control: any): number|StdLib.Area.Position?, number?
+---@return BoundingBox area
+---@return number control
 function Area.spiral_iterate(area, as_position)
     local rx = area.right_bottom.x - area.left_top.x + 1
     local ry = area.right_bottom.y - area.left_top.y + 1
@@ -712,7 +712,9 @@ function Area.spiral_iterate(area, as_position)
         y = y + dy
     end
 
-    local function iterator()
+    ---@param _state BoundingBox
+    ---@param _control any
+    local function iterator(_state, _control)
         if index > #positions then return end
         local pos = positions[index]
         index = index + 1

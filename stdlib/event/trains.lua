@@ -12,19 +12,14 @@ setmetatable(Trains, Trains)
 local Event = require('__kry_stdlib__/stdlib/event/event')
 local Surface = require('__kry_stdlib__/stdlib/area/surface')--[[@as StdLib.Area.Surface]]
 local Entity = require('__kry_stdlib__/stdlib/entity/entity')
-local table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
+local table = require('__kry_stdlib__/stdlib/utils/table')
 
---- This event fires when a train's ID changes.
--- <p>The train ID is a property of the main locomotive,
--- which means that when locomotives are attached or detached from their wagons or from other locomotives, the ID of the train changes.
--- <p>For example: A train with a front and rear locomotives will get its ID
--- from the front locomotive. If the front locomotive gets disconnected, the rear locomotive becomes the main one and the train's ID changes.
--- @event on_train_id_changed
--- @param old_id uint the ID of the train before the change
--- @param new_id uint the ID of the train after the change
--- @usage
--- Event.register(Trains.on_train_id_changed, my_handler)
-Trains.on_train_id_changed = Event.generate_event_name()
+--- Event ID fired when a train's ID changes.
+--- A train's ID is derived from its main locomotive, so attaching or detaching
+--- locomotives can cause the ID to change.
+---@usage Event.register(Trains.on_train_id_changed, my_handler)
+---@type defines.events
+Trains.on_train_id_changed = Event.generate_event_name('on_train_id_changed')
 
 --- Given a @{criteria|search criteria}, search for trains that match the criteria.
 -- If ***criteria.surface*** is not supplied, this function searches through all existing surfaces.

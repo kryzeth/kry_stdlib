@@ -1,6 +1,6 @@
---- Extends Lua 5.2 math.
----@class StdLib.Utils.Math : math
----@seea math
+--- Extensions to Lua's standard `math` library.
+---@class StdLib.Utils.Math
+---@see math
 ---@usage local math = require('__kry_stdlib__/stdlib/utils/math') --[[@as StdLib.Utils.Math]]
 local Math = {}
 

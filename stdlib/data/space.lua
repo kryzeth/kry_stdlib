@@ -1,5 +1,7 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
-local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
+--- Global supplied by PlanetsLib when that mod is loaded.
+---@diagnostic disable-next-line: undefined-global
+local PlanetsLib = PlanetsLib
 
 --- Relative orbit definition used by PlanetsLib.
 ---@class StdLib.Data.Orbit
@@ -317,9 +319,10 @@ end
 function Space:set_distance(distance)
 	assert(type(distance) == "number", "distance must be a number")
 	assert_planet_location(self, "set_distance")
+	local current_orbit = self.orbit
 
-	if self.orbit then
-		local orbit = table.deepcopy(self.orbit)
+	if current_orbit then
+		local orbit = table.deepcopy(current_orbit)
 
 		if has_parent_orbit(self) then
 			orbit.distance = distance
@@ -367,8 +370,9 @@ function Space:set_orientation(orientation)
 	assert(type(orientation) == "number", "orientation must be a number")
 	assert_planet_location(self, "set_orientation")
 
-	if self.orbit then
-		local orbit = table.deepcopy(self.orbit)
+	local current_orbit = self.orbit
+	if current_orbit then
+		local orbit = table.deepcopy(current_orbit)
 
 		if has_parent_orbit(self) then
 			orbit.orientation = orientation
@@ -395,8 +399,9 @@ function Space:set_position(distance, orientation)
 	assert(type(orientation) == "number", "orientation must be a number")
 	assert_planet_location(self, "set_position")
 
-	if self.orbit then
-		local orbit = table.deepcopy(self.orbit)
+	local current_orbit = self.orbit
+	if current_orbit then
+		local orbit = table.deepcopy(current_orbit)
 
 		if not has_parent_orbit(self) then
 			self.distance = distance
