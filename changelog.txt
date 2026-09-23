@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.21
+Date: September 22, 2026
+  Minor Features:
+    - Added several Item functions regarding fuel_categories.
+      Includes add_fuel_category, remove_fuel_category, add_fuel_categories, remove_fuel_categories.
+    - Added Recipe:add_categories and remove_categories to handle multiple categories.
+  Changes:
+    - Split EquipmentGrid:add/remove category functions to individual add/remove category/categories. 
+      No longer handles both table and string. This change is for consistency with the other category functions.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.20
 Date: September 20, 2026
   Optimizations:

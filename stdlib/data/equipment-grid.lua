@@ -1,5 +1,4 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
-local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
 local Category = require('__kry_stdlib__/stdlib/data/category')
 
 --- Wrapper for Factorio equipment-grid prototypes.
@@ -63,64 +62,100 @@ function EquipmentGrid:update_size(width, height)
 	return false
 end
 
+--- Replaces the equipment categories accepted by this grid with one category.
+---@param category_name string Equipment category name
+---@return self
+function EquipmentGrid:set_category(category_name)
+    assert(type(category_name) == "string", "Expected category name to be a string.")
+
+    if self:is_valid() then
+        local category = Category(category_name, 'equipment-category')
+        if category:is_valid() then
+            self.equipment_categories = {category_name}
+        end
+    end
+
+    return self
+end
+EquipmentGrid.set_cat  = EquipmentGrid.set_category
+
 --- Replaces the equipment categories accepted by this grid.
----@param categories string|string[] Equipment category name or names
----@return nil
-function EquipmentGrid:set_categories(categories)
-	if self:is_valid() then
-		assert(type(categories) == "table" or type(categories) == "string",
-			"Expected argument to be a table or a string.\nReceived:"..serpent.block(categories))
-		if type(categories) == "string" then
-			self.equipment_categories = {categories}
-		elseif type(categories) == "table" then
-			self.equipment_categories = Table.deepcopy(categories)
-		end
-	end
+---@param category_list string[] Equipment categories
+---@return self
+function EquipmentGrid:set_categories(category_list)
+    assert(type(category_list) == "table", "Expected categories to be a table.")
+
+    if self:is_valid() then
+        self.equipment_categories = {}
+        for _, category_name in ipairs(category_list) do
+            self:add_category(category_name)
+        end
+    end
+
+    return self
 end
-EquipmentGrid.set_category = EquipmentGrid.set_categories
 EquipmentGrid.set_cats = EquipmentGrid.set_categories
-EquipmentGrid.set_cat = EquipmentGrid.set_categories
 
---- Adds one or more equipment categories accepted by this grid.
----@param new_categories string|string[] Equipment category name or names
+--- Adds one equipment category.
+---@param category_name string Equipment category name
 ---@return self
-function EquipmentGrid:add_categories(new_categories)
-	assert(type(new_categories) == "table" or type(new_categories) == "string",
-		"Expected argument to be a table or a string.")
-	if self:is_valid() then
-		if type(new_categories) == "string" then
-			Category(new_categories, 'equipment-category'):add_to(self, 'equipment_categories')
-		elseif type(new_categories) == "table" then
-			for _, category_name in ipairs(new_categories) do
-				Category(category_name, 'equipment-category'):add_to(self, 'equipment_categories')
-			end
-		end
-	end
-	return self
+function EquipmentGrid:add_category(category_name)
+    assert(type(category_name) == "string", "Expected category name to be a string.")
+
+    if self:is_valid() then
+        Category(category_name, 'equipment-category'):add_to(self, 'equipment_categories')
+    end
+
+    return self
 end
-EquipmentGrid.add_category = EquipmentGrid.add_categories
+EquipmentGrid.add_cat  = EquipmentGrid.add_category
+
+--- Adds multiple equipment categories.
+---@param category_list string[] Equipment categories
+---@return self
+function EquipmentGrid:add_categories(category_list)
+    assert(type(category_list) == "table", "Expected categories to be a table.")
+
+    if self:is_valid() then
+        for _, category_name in ipairs(category_list) do
+            self:add_category(category_name)
+        end
+    end
+
+    return self
+end
 EquipmentGrid.add_cats = EquipmentGrid.add_categories
-EquipmentGrid.add_cat = EquipmentGrid.add_categories
 
---- Removes one or more equipment categories accepted by this grid.
----@param categories string|string[] Equipment category name or names
+--- Removes one equipment category.
+---@param category_name string Equipment category name
 ---@return self
-function EquipmentGrid:remove_categories(categories)
-	assert(type(categories) == "table" or type(categories) == "string",
-		"Expected argument to be a table or a string.")
-	if self:is_valid() then
-		if type(categories) == "string" then
-			Category(categories, 'equipment-category'):remove_from(self, 'equipment_categories')
-		elseif type(categories) == "table" then
-			for _, category_name in ipairs(categories) do
-				Category(category_name, 'equipment-category'):remove_from(self, 'equipment_categories')
-			end
-		end
-	end
-	return self
+function EquipmentGrid:remove_category(category_name)
+    assert(type(category_name) == "string", "Expected category name to be a string.")
+
+    if self:is_valid() then
+        Category(category_name, 'equipment-category'):remove_from(self, 'equipment_categories')
+    end
+
+    return self
 end
-EquipmentGrid.rem_category = EquipmentGrid.remove_categories
+EquipmentGrid.rem_cat  = EquipmentGrid.remove_category
+EquipmentGrid.rem_category = EquipmentGrid.remove_category
+
+--- Removes multiple equipment categories.
+---@param category_list string[] Equipment categories
+---@return self
+function EquipmentGrid:remove_categories(category_list)
+    assert(type(category_list) == "table", "Expected categories to be a table.")
+
+    if self:is_valid() then
+        for _, category_name in ipairs(category_list) do
+            self:remove_category(category_name)
+        end
+    end
+
+    return self
+end
 EquipmentGrid.rem_cats = EquipmentGrid.remove_categories
-EquipmentGrid.rem_cat = EquipmentGrid.remove_categories
+EquipmentGrid.rem_cats = EquipmentGrid.remove_categories
 
 return EquipmentGrid

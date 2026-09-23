@@ -1,5 +1,5 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
-local table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
+local table = require('__kry_stdlib__/stdlib/utils/table')
 local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
 
 --- Wrapper for Factorio category prototypes.
@@ -39,7 +39,10 @@ end
 function Category:add_to(target, field)
     if self:is_valid() and target:is_valid() then
         target[field] = target[field] or {}
-        table.insert(target[field], self.name)
+        -- duplicate category prevention
+        if not table.contains(target[field], self.name) then
+            table.insert(target[field], self.name)
+        end
     end
 
     return target

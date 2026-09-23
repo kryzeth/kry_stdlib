@@ -286,6 +286,18 @@ function Recipe:add_category(category_name)
     end
     return self
 end
+Recipe.add_cat  = Recipe.add_category
+
+--- Adds multiple recipe categories.
+---@param category_list string[] Recipe categories to add
+---@return self
+function Recipe:add_categories(category_list)
+    for _, category_name in pairs(category_list or {}) do
+        self:add_category(category_name)
+    end
+    return self
+end
+Recipe.add_cats = Recipe.add_categories
 
 --- Remove a recipe category from the list of categories
 ---@param category_name string The crafting category to remove
@@ -297,6 +309,18 @@ function Recipe:remove_category(category_name)
     end
     return self
 end
+Recipe.rem_cat  = Recipe.remove_category
+
+--- Removes multiple recipe categories.
+---@param category_list string[] Recipe categories to remove
+---@return self
+function Recipe:remove_categories(category_list)
+    for _, category_name in pairs(category_list or {}) do
+        self:remove_category(category_name)
+    end
+    return self
+end
+Recipe.rem_cats = Recipe.remove_categories
 
 --- Add to technology as a recipe unlock.
 ---@param tech_name string Name of the technology to add the unlock too
