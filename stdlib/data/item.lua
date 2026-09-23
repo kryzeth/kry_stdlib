@@ -1,11 +1,13 @@
 local Data = require('__kry_stdlib__/stdlib/data/data') --[[@as StdLib.Data]]
-local Table = require('__kry_stdlib__/stdlib/utils/table') --[[@as StdLib.Utils.Table]]
+local Table = require('__kry_stdlib__/stdlib/utils/table')
+local Category = require('__kry_stdlib__/stdlib/data/category') --[[@as StdLib.Data.Category]]
 
 --- Wrapper for Factorio item-like prototypes.
 ---@class StdLib.Data.Item : StdLib.Data
 ---@field place_result? string
 ---@field place_as_tile? PlaceAsTile
 ---@field place_as_equipment_result? string
+---@field fuel_categories? string[]
 local Item = {
     __class = 'Item',
     __index = Data,
@@ -27,6 +29,58 @@ function Item:get_place_result()
     end
     return Entity()
 end
+
+--- Adds a fuel category to this item.
+---@param category_name string Fuel category name
+---@return self
+function Item:add_fuel_category(category_name)
+    if self:is_valid() then
+        Category(category_name, 'fuel-category'):add_to(self, 'fuel_categories')
+    end
+
+    return self
+end
+Item.add_fuel_cat  = Item.add_fuel_category
+
+--- Adds multiple fuel categories to this item.
+---@param category_list string[] Fuel categories to add
+---@return self
+function Item:add_fuel_categories(category_list)
+    if self:is_valid() then
+        for _, category_name in pairs(category_list or {}) do
+            self:add_fuel_category(category_name)
+        end
+    end
+
+    return self
+end
+Item.add_fuel_cats = Item.add_fuel_categories
+
+--- Removes a fuel category from this item.
+---@param category_name string Fuel category name
+---@return self
+function Item:remove_fuel_category(category_name)
+    if self:is_valid() then
+        Category(category_name, 'fuel-category'):remove_from(self, 'fuel_categories')
+    end
+
+    return self
+end
+Item.rem_fuel_cat  = Item.remove_fuel_category
+
+--- Removes multiple fuel categories from this item.
+---@param category_list string[] Fuel categories to remove
+---@return self
+function Item:remove_fuel_categories(category_list)
+    if self:is_valid() then
+        for _, category_name in pairs(category_list or {}) do
+            self:remove_fuel_category(category_name)
+        end
+    end
+
+    return self
+end
+Item.rem_fuel_cats = Item.remove_fuel_categories
 
 --- Converts a lab name or array of lab names to an array.
 --- Returns every lab prototype name when `params` is omitted.
