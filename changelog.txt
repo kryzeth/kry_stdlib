@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.22
+Date: September 22, 2026
+  Bugfixes:
+    - Fixed Entity:set_minable_result to nil out minable.results.
+      Added second argument to allow setting the count alongside the result.
+    - Added Entity:set_minable_results to handle minable.results.
+    - Finally fixed Data:krycopy to handle minable results.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.21
 Date: September 22, 2026
   Minor Features:

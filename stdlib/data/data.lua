@@ -244,9 +244,24 @@ function Data:copy(new_name, result, opts)
         copy.name = new_name
 
         -- For entities
-        -- Need to also check mining results!!!!!!
-        if copy.minable and copy.minable.result then
-            copy.minable.result = result
+        if copy.minable then
+            if copy.minable.result then
+                copy.minable.result = result
+            end
+
+            if copy.minable.results then
+                for _, mining_result in pairs(copy.minable.results) do
+                    local name = mining_result.name or mining_result[1]
+
+                    if name == self.name then
+                        if mining_result.name then
+                            mining_result.name = result
+                        else
+                            mining_result[1] = result
+                        end
+                    end
+                end
+            end
         end
 
         -- For items

@@ -1,7 +1,6 @@
 local Data = require('__kry_stdlib__/stdlib/data/data')
 local Table = require('__kry_stdlib__/stdlib/utils/table')
 local Category = require('__kry_stdlib__/stdlib/data/category')
-local Item = require('__kry_stdlib__/stdlib/data/item')
 local Energy = require('__kry_stdlib__/stdlib/data/modules/energy')
 
 --- Wrapper for Factorio entity prototypes.
@@ -71,6 +70,7 @@ end
 ---@return StdLib.Data.Item item
 function Entity:get_minable_item()
     local groups = require('__kry_stdlib__/stdlib/data/modules/groups')
+	local Item = require('__kry_stdlib__/stdlib/data/item')
     if self:is_valid() then
         local m = self.minable
         local item_name = m and (m.result or (m.results and m.results[1] and m.results[1].name))
@@ -85,16 +85,35 @@ function Entity:get_minable_item()
     return Item()
 end
 
---- Changes the item produced when this entity is mined.
+--- Sets the single result produced when this entity is mined, replacing any existing mining results.
 ---@param item string|table Item name or prototype wrapper
+---@param count? integer Number of items produced; defaults to 1
 ---@return self
-function Entity:set_minable_item(item)
-	local item = Item(item)
-    if self:is_valid() and item:is_valid() then
-		self.minable.result = item.name
+function Entity:set_minable_result(item, count)
+	local Item = require('__kry_stdlib__/stdlib/data/item')
+    local wrapped_item = Item(item)
+    if self:is_valid() and wrapped_item:is_valid() and self.minable then
+		count = count or 1
+        self.minable.result = wrapped_item.name
+        self.minable.count = count
+        self.minable.results = nil
     end
-	return self
+    return self
 end
+Entity.set_minable_item = Entity.set_minable_result
+
+--- Sets the items produced when this entity is mined, replacing any existing single-item mining result.
+---@param results ItemProductPrototype[]
+---@return self
+function Entity:set_minable_results(results)
+    if self:is_valid() and self.minable then
+        self.minable.result = nil
+        self.minable.count = nil
+        self.minable.results = table.deepcopy(results)
+    end
+    return self
+end
+Entity.set_minable_items = Entity.set_minable_results
 
 --- Returns whether players can place this entity.
 ---@return boolean placeable
