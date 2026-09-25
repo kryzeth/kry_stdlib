@@ -8,6 +8,7 @@ local PlanetsLib = PlanetsLib
 ---@field parent {type:string, name:string} Parent space-location or planet
 ---@field distance number Relative distance from the parent
 ---@field orientation number Relative orientation around the parent
+---@field _default boolean Marker used for auto-generated PlanetsLib orbits
 
 --- Wrapper for planet, space-location, and space-connection prototypes.
 ---@class StdLib.Data.Space : StdLib.Data
@@ -62,11 +63,20 @@ local function assert_planet_location(object, method)
 	)
 end
 
+--- Returns whether this location has an active PlanetsLib orbit.
+---@param object StdLib.Data.Space
+---@return boolean
+local function has_active_orbit(object)
+	return object.orbit ~= nil and not object.orbit._default
+end
+
 --- Returns whether this location has a relative orbit around another location.
 ---@param object StdLib.Data.Space
 ---@return boolean
 local function has_parent_orbit(object)
-	local parent = object.orbit and object.orbit.parent
+	if not has_active_orbit(object) then return false end
+
+	local parent = object.orbit.parent
 
 	return parent
 		and not (parent.type == "space-location" and parent.name == "star")
@@ -102,19 +112,11 @@ end
 local function update_orbit(object, orbit)
 	assert(mods["PlanetsLib"] and PlanetsLib,
 		"Cannot update this orbit-based prototype without PlanetsLib enabled")
-	if PlanetsLib.current_stage == "data-final-fixes" then
-		-- runs through the same modifications that PlanetsLib:update would do
-		local orbits = require("__PlanetsLib__/lib/orbits")
-		object.orbit = orbit
-		object.distance, object.orientation = orbits.get_absolute_polar_position_from_orbit(orbit)
-		orbits.update_positions_of_all_children_via_orbits(object)
-	else
-		PlanetsLib:update({
-			type = object.type,
-			name = object.name,
-			orbit = orbit,
-		})
-	end
+	PlanetsLib:update({
+		type = object.type,
+		name = object.name,
+		orbit = orbit,
+	})
 
 	return object
 end
@@ -313,7 +315,7 @@ end
 -- Space positional functions
 -- ----------------------------
 --- Sets this location's distance.
---- Updates orbit.distance when an orbit exists.
+--- Updates orbit.distance when an active orbit exists.
 ---@param distance number
 ---@return self
 function Space:set_distance(distance)
@@ -321,7 +323,7 @@ function Space:set_distance(distance)
 	assert_planet_location(self, "set_distance")
 	local current_orbit = self.orbit
 
-	if current_orbit then
+	if has_active_orbit(self) then
 		local orbit = table.deepcopy(current_orbit)
 
 		if has_parent_orbit(self) then
@@ -341,7 +343,7 @@ function Space:set_distance(distance)
 end
 
 --- Adds a value to this location's current distance.
---- Uses orbit.distance when an orbit exists, otherwise uses the base distance field.
+--- Uses orbit.distance when an active orbit exists, otherwise uses the base distance field.
 ---@param delta number
 ---@return self
 function Space:update_distance(delta)
@@ -363,7 +365,7 @@ function Space:copy_distance(other)
 end
 
 --- Sets this location's orientation.
---- Updates orbit.orientation through PlanetsLib when a valid orbit exists.
+--- Updates orbit.orientation through PlanetsLib when an active orbit exists.
 ---@param orientation number
 ---@return self
 function Space:set_orientation(orientation)
@@ -371,7 +373,7 @@ function Space:set_orientation(orientation)
 	assert_planet_location(self, "set_orientation")
 
 	local current_orbit = self.orbit
-	if current_orbit then
+	if has_active_orbit(self) then
 		local orbit = table.deepcopy(current_orbit)
 
 		if has_parent_orbit(self) then
@@ -391,6 +393,7 @@ function Space:set_orientation(orientation)
 end
 
 --- Sets this location's distance and orientation fields simultaneously.
+--- Updates orbit.distance and orbit.orientation through PlanetsLib when an active orbit exists.
 ---@param distance number
 ---@param orientation number
 ---@return self
@@ -400,7 +403,7 @@ function Space:set_position(distance, orientation)
 	assert_planet_location(self, "set_position")
 
 	local current_orbit = self.orbit
-	if current_orbit then
+	if has_active_orbit(self) then
 		local orbit = table.deepcopy(current_orbit)
 
 		if not has_parent_orbit(self) then

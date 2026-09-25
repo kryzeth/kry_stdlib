@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.23
+Date: September 24, 2026
+  Changes:
+    - Added PlanetsLib as optional dependency in order to set minimum compatible version. 
+  Bugfixes:
+    - Fixed Recipe:copy_unlock to copy the enabled status if no unlock techs were found.
+    - Fixed several Space-related functions to accomodate the new origin-based PlanetsLib.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.22
 Date: September 22, 2026
   Bugfixes:
