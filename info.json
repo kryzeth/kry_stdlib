@@ -1,13 +1,14 @@
 {
 	"name": "kry_stdlib",
 	"author": "Kryzeth, Afforess, Jackie P. Mueller, Goakiller900",
-	"version": "2.2.22",
+	"version": "2.2.23",
 	"factorio_version": "2.1",
 	"title": "Kryzeth Standard Library",
 	"homepage": "https://github.com/kryzeth/kry_stdlib",
 	"description": "Community-maintained continuation of the Factorio Standard Library, which was a project to bring Factorio modders high-quality, commonly-required utilities and tools.",
 	"dependencies": [
-		"base >= 2.1.20"
+		"base >= 2.1.20",
+		"(?) PlanetsLib >= 2.0.0"
 	],
 	"package": {
 		"ignore": [
