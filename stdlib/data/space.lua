@@ -125,12 +125,12 @@ end
 ---@param asteroid_spawn_definitions table[] Asteroid spawn definitions
 ---@param name string Asteroid prototype name
 ---@return boolean? removed
-local function remove_asteroid(asteroid_spawn_definitions,name) -- expected table, string
+local function remove_asteroid(asteroid_spawn_definitions,name)
 	for key, asteroid in pairs(asteroid_spawn_definitions) do
-        if asteroid.asteroid == name then
-            table.remove(asteroid_spawn_definitions, key)
-            return true
-        end
+		if asteroid.asteroid == name then
+			table.remove(asteroid_spawn_definitions, key)
+			return true
+		end
 	end
 end
 
@@ -309,6 +309,41 @@ local function generate_connection_asteroids(origin, destination)
     end
 
     return(merged)
+end
+
+-- ----------------------------
+-- Miscellaneous Space Functions
+-- ----------------------------
+--- Removes connections to this location unless an exception matches.
+--- This exception list can be expanded upon later, if necessary
+---@param exceptions? {names?: string[], destinations?: string[]}
+---@return self
+function Space:isolate(exceptions)
+    assert_planet_location(self, "isolate")
+    exceptions = exceptions or {}
+
+    local names, destinations = {}, {}
+    for _, name in ipairs(exceptions.names or {}) do
+        names[name] = true
+    end
+    for _, destination in ipairs(exceptions.destinations or {}) do
+        destinations[destination] = true
+    end
+
+    for name, connection in pairs(data.raw["space-connection"] or {}) do
+        local other
+        if connection.from == self.name then
+            other = connection.to
+        elseif connection.to == self.name then
+            other = connection.from
+        end
+
+        if other and not (names[name] or destinations[other]) then
+            data.raw["space-connection"][name] = nil
+        end
+    end
+
+    return self
 end
 
 -- ----------------------------

@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.24
+Date: October 4, 2026
+  Changes:
+    - Added Space:isolate(exceptions) for use with planets/space-locations.
+      exceptions can be defined with a subtable of names and/or destinations.
+      exceptions.names checks exact name of the connection, exceptions.destinations checks to/from fields.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.23
 Date: September 24, 2026
   Changes:
