@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.25
+Date: October 11, 2026
+  Bugfixes:
+    - Fixed get_localised_description to follow inherited descriptions from item/recipe/entity/etc.
+      get_localised_name was already working this way, just needed description to follow suit.
+    - Fixed localised string append/prepend helpers to avoid leaving unnecessary separators.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.24
 Date: October 4, 2026
   Changes:

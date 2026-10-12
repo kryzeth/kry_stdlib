@@ -86,18 +86,49 @@ local function find_prototype(name, types)
     end
 end
 
+
 --- Combines two LocalisedStrings with an optional separator.
+--- Omits the separator when either side is empty or falls back to "".
 ---@param first LocalisedString
 ---@param second LocalisedString
 ---@param separator? LocalisedString
 ---@return LocalisedString
 local function merge_localised(first, second, separator)
-    if separator ~= nil then
-        return {"", first, separator, second}
+    if first == nil or first == "" then return second end
+    if second == nil or second == "" then return first end
+    if separator == nil or separator == "" then return {"", first, second} end
+
+    local function has_empty_fallback(value)
+        return type(value) == "table" and value[1] == "?" and value[#value] == ""
     end
 
-    return {"", first, second}
+    -- Preserve conditional localization while avoiding a separator
+    -- when the existing description has no matching locale key.
+    if has_empty_fallback(first) then
+        local result = {"?"}
+
+        for i = 2, #first - 1 do
+            result[#result + 1] = merge_localised(first[i], second, separator)
+        end
+
+        result[#result + 1] = second
+        return result
+    end
+
+    if has_empty_fallback(second) then
+        local result = {"?"}
+
+        for i = 2, #second - 1 do
+            result[#result + 1] = merge_localised(first, second[i], separator)
+        end
+
+        result[#result + 1] = first
+        return result
+    end
+
+    return {"", first, separator, second}
 end
+
 --)) END Local Functions ((--
 
 --(( METHODS ))--
@@ -692,9 +723,7 @@ end
 --- entity or a recipe's main product, before falling back to its locale key.
 ---@return LocalisedString?
 function Data:get_localised_name()
-    if not self:is_valid() then
-        return nil
-    end
+    if not self:is_valid() then return nil end
 
     -- Explicit localised names always take priority.
     if self.localised_name then
@@ -723,11 +752,8 @@ function Data:get_localised_name()
             product_name = self.results[1].name or self.results[1][1]
         end
 
-        if product_name then
-            local product = find_prototype(
-                product_name,
-                groups.item_and_fluid
-            )
+        if product_name and product_name == self.name then
+            local product = find_prototype(product_name, groups.item_and_fluid)
 
             if product then
                 return Data(product):get_localised_name()
@@ -786,41 +812,59 @@ function Data:get_localised_name()
     end
 
     -- Otherwise use the standard locale key for this prototype family.
-    return {
-        get_locale_namespace(self.type) .. "-name." .. self.name
-    }
+    return {get_locale_namespace(self.type) .. "-name." .. self.name}
 end
 Data.get_localized_name = Data.get_localised_name
 
 --- Gets the effective localised description of this prototype.
---- Explicit localised descriptions take priority. Otherwise returns the
---- standard locale description with an empty fallback when none exists.
+--- Resolves inherited descriptions from placed entities and equipment,
+--- and numbered technology descriptions, before falling back to locale.
 ---@return LocalisedString?
 function Data:get_localised_description()
     if not self:is_valid() then
         return nil
     end
 
+    -- Explicit localised descriptions always take priority.
     if self.localised_description then
-        
         local localised_description = self.localised_description
-        -- return as table or as simple string
-        if type(self.localised_description) == "table" then
-            ---@cast localised_description table
+
+        if type(localised_description) == "table" then
             return table.deep_copy(localised_description)
-        else return self.localised_description
+        else
+            return localised_description
         end
     end
 
-    return {
-        "?",
-        {
-            get_locale_namespace(self.type)
-                .. "-description."
-                .. self.name
-        },
-        ""
-    }
+    -- Items which place entities or equipment inherit their descriptions.
+    if table.contains(groups.item, self.type) then
+        ---@cast self StdLib.Data.Item
+        if self.place_result and self.place_result ~= "" then
+            local entity = find_prototype(self.place_result, groups.entity)
+            if entity then
+                return Data(entity):get_localised_description()
+            end
+        end
+
+        if self.place_as_equipment_result and self.place_as_equipment_result ~= "" then
+            local equipment = find_prototype(self.place_as_equipment_result, groups.equipment)
+            if equipment then
+                return Data(equipment):get_localised_description()
+            end
+        end
+    end
+
+    -- Numbered technologies inherit the base technology's locale.
+    if self.type == "technology" then
+        local base_name = self.name:match("^(.-)%-%d+$")
+
+        if base_name then
+            return {"?", {"technology-description."..base_name}, ""}
+        end
+    end
+
+    -- Otherwise use the standard locale key with an empty fallback.
+    return {"?",{get_locale_namespace(self.type).."-description."..self.name},""}
 end
 Data.get_localized_description = Data.get_localised_description
 
@@ -842,7 +886,6 @@ function Data:append_localised_name(value, separator)
     return self
 end
 Data.append_localized_name = Data.append_localised_name
-
 
 --- Prepends a LocalisedString to this prototype's effective localised name.
 ---@param value LocalisedString Value to prepend
