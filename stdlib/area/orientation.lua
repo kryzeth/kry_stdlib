@@ -40,9 +40,9 @@ local floor = math.floor
 ---@param eight_way boolean? [opt=false] true to get the next direction in 8-way; else 4-way
 ---@return defines.direction
 function Orientation.to_direction(orientation, eight_way)
-    local f = eight_way and 16 or 8
+    local f = eight_way and 8 or 4
     local mod = eight_way and 2 or 4
-    return floor(orientation * f + 0.5) % f * mod * 2 --[[@as defines.direction]] --2.0
+    return floor(orientation * f + 0.5) % f * mod --[[@as defines.direction]]
 end
 
 --- Returns the opposite orientation.

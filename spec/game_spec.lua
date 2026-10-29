@@ -88,11 +88,13 @@ describe("Game Spec",
             end
         )
 
-        it("Game.get_force should return mixed if mixed is table & userdata and mixed.valid is not nil",
+        it("Game.get_force should return a valid force object unchanged",
             function()
                 local force_names = {"ForceOne", "ForceTwo", "ForceThree"}
-                for _, force_name in ipairs(force_names) do
-                    game.forces[force_name] = { index = force_name, name = force_name}
+                for index, force_name in ipairs(force_names) do
+                    game.forces[force_name] = {
+                        index = index, name = force_name, object_name = "LuaForce", valid = true
+                    }
                 end
                 for _, force in pairs(game.forces) do
                     assert.equal(force, Game.get_force(force))
@@ -150,10 +152,11 @@ describe("Game Spec",
             end
         )
 
-        it("Game.get_force should return false",
+        it("Game.get_force should return false for an invalid force object or name",
             function()
-                assert.is_false(Game.get_force({index = "Force", force = "Force", __self = true, valid = false}))
-                game.forces["Force"] = { index = "Force", force = "Force", __self = true, valid = false }
+                local force = { index = 1, name = "Force", object_name = "LuaForce", valid = false }
+                game.forces["Force"] = force
+                assert.is_false(Game.get_force(force))
                 assert.is_false(Game.get_force("Force"))
             end
         )

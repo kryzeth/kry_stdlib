@@ -4,41 +4,41 @@ local Entity = require('__kry_stdlib__/stdlib/entity/entity')
 
 describe('Entity', function()
     it('an entity should be frozen', function()
-        local entity = { active = true, operable = true, rotatable = true }
+        local entity = { disabled_by_script = false, operable = true, rotatable = true }
         Entity.set_frozen(entity)
 
-        assert.is_false(entity.active)
+        assert.is_true(entity.disabled_by_script)
         assert.is_false(entity.operable)
         assert.is_false(entity.rotatable)
 
         Entity.set_frozen(entity, false)
 
-        assert.is_true(entity.active)
+        assert.is_false(entity.disabled_by_script)
         assert.is_true(entity.operable)
         assert.is_true(entity.rotatable)
 
         Entity.set_frozen(entity, true)
 
-        assert.is_false(entity.active)
+        assert.is_true(entity.disabled_by_script)
         assert.is_false(entity.operable)
         assert.is_false(entity.rotatable)
     end)
 
     it('an entity should be indestructible', function()
-        local entity = { minable = true, destructible = true }
+        local entity = { minable_flag = true, destructible = true }
         Entity.set_indestructible(entity)
 
-        assert.is_false(entity.minable)
+        assert.is_false(entity.minable_flag)
         assert.is_false(entity.destructible)
 
         Entity.set_indestructible(entity, false)
 
-        assert.is_true(entity.minable)
+        assert.is_true(entity.minable_flag)
         assert.is_true(entity.destructible)
 
         Entity.set_indestructible(entity, true)
 
-        assert.is_false(entity.minable)
+        assert.is_false(entity.minable_flag)
         assert.is_false(entity.destructible)
     end)
 
