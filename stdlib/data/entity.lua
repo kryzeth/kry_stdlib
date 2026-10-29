@@ -3,10 +3,16 @@ local Table = require('__kry_stdlib__/stdlib/utils/table')
 local Category = require('__kry_stdlib__/stdlib/data/category')
 local Energy = require('__kry_stdlib__/stdlib/data/modules/energy')
 
+---@class StdLib.Data.Resistance
+---@field type string Damage type name
+---@field decrease? number Flat damage reduction
+---@field percent? number Percentage damage reduction
+
 --- Wrapper for Factorio entity prototypes.
 ---@class StdLib.Data.Entity : StdLib.Data
 ---@field minable MinableProperties (AssemblingMachinePrototype and many others)
 ---@field inputs? StdLib.UniqueArray
+---@field resistances? StdLib.Data.Resistance[]
 ---@field collision_mask? CollisionMaskConnector
 ---@field collision_box? BoundingBox
 ---@field energy_source? EnergySource
@@ -246,6 +252,103 @@ function Entity:remove_categories(category_list)
 	end
 
 	return self
+end
+
+-- Validates a resistance entry's basic structure.
+---@param resistance StdLib.Data.Resistance
+---@param method string
+local function validate_resistance(resistance, method)
+    assert(type(resistance) == "table",
+        "resistance must be a table when using " .. method)
+    assert(type(resistance.type) == "string",
+        "resistance.type must be a string when using " .. method)
+end
+
+-- Locates resistance by damage type.
+---@param resistances StdLib.Data.Resistance[]?
+---@param damage_type string
+---@return StdLib.Data.Resistance? resistance
+---@return integer? index
+local function find_resistance(resistances, damage_type)
+    for index, resistance in ipairs(resistances or {}) do
+        if resistance.type == damage_type then
+            return resistance, index
+        end
+    end
+end
+
+--- Adds a new resistance entry to the table, skipping over existing entry of the same type.
+---@param resistance StdLib.Data.Resistance
+---@return self
+function Entity:add_resistance(resistance)
+    validate_resistance(resistance, "Entity:add_resistance")
+
+    if self:is_valid() then
+		-- if resistance was not found in the table, add it to the table
+        if not find_resistance(self.resistances, resistance.type) then
+			-- make sure to create the table if one did not already exist
+            self.resistances = self.resistances or {}
+            table.insert(self.resistances, table.deepcopy(resistance))
+        end
+    end
+
+    return self
+end
+
+--- Updates supplied fields on an existing resistance.
+--- Does nothing if the damage type is not already in the table.
+---@param resistance StdLib.Data.Resistance
+---@return self
+function Entity:update_resistance(resistance)
+    validate_resistance(resistance, "Entity:update_resistance")
+
+    if self:is_valid() then
+        local existing = find_resistance(self.resistances, resistance.type)
+
+        if existing then
+            for field, value in pairs(resistance) do
+                existing[field] = value
+            end
+		else	-- only log if we failed to update an entry
+			log('Could not update resistance as '..resistance.type..' was not located in the table for '..self.name)
+        end
+    end
+    return self
+end
+
+--- Updates supplied fields on an existing resistance, or adds it.
+---@param resistance StdLib.Data.Resistance
+---@return self
+function Entity:set_resistance(resistance)
+    validate_resistance(resistance, "Entity:set_resistance")
+
+    if self:is_valid() then
+        local existing = find_resistance(self.resistances, resistance.type)
+        if existing then	-- update if exists
+			self:update_resistance(resistance)
+        else	-- add if it doesn't
+			self:add_resistance(resistance)
+        end
+    end
+
+    return self
+end
+
+--- Removes resistance to a damage type.
+---@param damage_type string
+---@return self
+function Entity:remove_resistance(damage_type)
+    assert(type(damage_type) == "string", "damage_type must be a string when using Entity:remove_resistance")
+
+    if self:is_valid() then
+		-- attempt to locate matching index for damage type
+        local _, index = find_resistance(self.resistances, damage_type)
+        if index then	-- remove that index from the resistance table if located
+            table.remove(self.resistances, index)
+        end
+    end
+
+    return self
 end
 
 local function rescale_connection_cover_sprite(sprite, scale, shift_x, shift_y)
