@@ -331,6 +331,8 @@ function Recipe:add_unlock(tech_name)
         if tech:is_valid() then
             self:set_enabled(false)
             tech:add_effect(self.name)
+		else
+			log("Unable to add unlock to invalid tech: "..tech_name)
         end
     end
     return self

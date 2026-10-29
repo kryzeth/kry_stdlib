@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - pre-release
   pull_request:
     branches:
       - master
+      - pre-release
 
 permissions:
   contents: read
@@ -33,7 +35,10 @@ jobs:
           assert info['name'] == 'kry_stdlib'
           assert re.fullmatch(r'\d+\.\d+\.\d+', info['version'])
           assert info['factorio_version'] == '2.1'
-          assert 'base >= 2.1' in info['dependencies']
+          assert any(
+              re.fullmatch(r'base\s*>=\s*2\.1\.[0-9]+', dependency)
+              for dependency in info['dependencies']
+          ), 'Expected a required base dependency of the form base >= 2.1.x'
 
           stale_imports = []
           stale_mod_checks = []

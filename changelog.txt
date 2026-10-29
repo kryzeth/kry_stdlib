@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.26
+Date: October 29, 2026
+  Minor Features:
+    - Added Entity:add/set/update/remove_resistance.
+  Bugfixes:
+    - Potentially fixed an issue with Orientation to Direction.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.25
 Date: October 11, 2026
   Bugfixes:
@@ -8,7 +15,7 @@ Date: October 11, 2026
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.24
 Date: October 4, 2026
-  Changes:
+  Minor Features:
     - Added Space:isolate(exceptions) for use with planets/space-locations.
       exceptions can be defined with a subtable of names and/or destinations.
       exceptions.names checks exact name of the connection, exceptions.destinations checks to/from fields.

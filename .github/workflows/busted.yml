@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - pre-release
   pull_request:
     branches:
       - master
+      - pre-release
 
 permissions:
   contents: read
@@ -14,6 +16,8 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      TEST_ROCKS_TREE: ${{ github.workspace }}/.test-rocks
 
     steps:
       - name: Check out repository
@@ -34,14 +38,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sudo luarocks --lua-version=5.2 install busted >/tmp/busted-install.log 2>&1 || {
+          luarocks --lua-version=5.2 --tree "${TEST_ROCKS_TREE}" install busted >/tmp/busted-install.log 2>&1 || {
             cat /tmp/busted-install.log
             exit 1
           }
-          sudo luarocks --lua-version=5.2 install serpent >/tmp/serpent-install.log 2>&1 || {
+          luarocks --lua-version=5.2 --tree "${TEST_ROCKS_TREE}" install serpent >/tmp/serpent-install.log 2>&1 || {
             cat /tmp/serpent-install.log
             exit 1
           }
+
+          test -x "${TEST_ROCKS_TREE}/bin/busted"
+          eval "$(luarocks --lua-version=5.2 --tree "${TEST_ROCKS_TREE}" path)"
+          "${TEST_ROCKS_TREE}/bin/busted" --version
 
       - name: Restore stdlib Factorio mock harness
         shell: bash
@@ -58,17 +66,18 @@ jobs:
           grep -rl --fixed-strings '__stdlib__' faketorio \
             | xargs -r sed -i 's/__stdlib__/__kry_stdlib__/g'
 
-          sudo ln -sfn "${GITHUB_WORKSPACE}" \
-            /usr/local/share/lua/5.2/__kry_stdlib__
+          mkdir -p "${TEST_ROCKS_TREE}/share/lua/5.2"
+          ln -sfn "${GITHUB_WORKSPACE}" \
+            "${TEST_ROCKS_TREE}/share/lua/5.2/__kry_stdlib__"
 
       - name: Run Busted test suite
         id: busted
         shell: bash
         run: |
-          set -uo pipefail
-          eval "$(luarocks --lua-version=5.2 path)"
+          set -euo pipefail
+          eval "$(luarocks --lua-version=5.2 --tree "${TEST_ROCKS_TREE}" path)"
           set +e
-          busted -o utfTerminal >busted.log 2>&1
+          "${TEST_ROCKS_TREE}/bin/busted" -o utfTerminal >busted.log 2>&1
           status=$?
           set -e
           echo "status=${status}" >>"${GITHUB_OUTPUT}"
