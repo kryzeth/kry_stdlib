@@ -214,12 +214,7 @@ end
 ---@param child LuaEntity
 ---@param relative_pos? MapPosition Position relative to the parent stored by Things
 ---@return things.ThingSummary? child_info
-function Things.ensure_thing_child(
-	parent,
-	child_index,
-	child,
-	relative_pos
-)
+function Things.ensure_thing_child(parent, child_index, child, relative_pos)
 	if not (parent and parent.valid) then return nil end
 	if not (child and child.valid) then return nil end
 
@@ -280,7 +275,7 @@ function Things.ensure_thing_child(
 			end
 		end
 
-		if not Things.add_child(parent, key, child_thing.id) then
+		if not Things.add_child(parent, key, child) then
 			return nil
 		end
 	else
