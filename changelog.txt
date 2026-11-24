@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.27
+Date: November 23, 2026
+  Minor Features:
+    - Fixed longstanding issue with Things API function ensure_thing_child using the wrong id.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.26
 Date: October 29, 2026
   Minor Features:
